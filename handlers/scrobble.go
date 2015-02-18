@@ -1,22 +1,119 @@
 package handlers
 
 import (
+	"crypto/md5"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
+	"code.google.com/p/go-uuid/uuid"
 	"github.com/hawx/trobble/data"
 )
 
-type scrobbleHandler struct {
-	db *data.Database
+func filter(pred func(*http.Request) bool, sub http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if pred(r) {
+			sub.ServeHTTP(w, r)
+		} else {
+			fmt.Fprintf(w, `<lfm status="failed">
+  <error code="4">Authentication Failed</error>
+</lfm>`)
+		}
+	})
 }
 
-func Scrobble(db *data.Database) http.Handler {
-	return &scrobbleHandler{db}
+type Auth struct {
+	username, apiKey, secret, sessionId string
+}
+
+func NewAuth(username, apiKey, secret string) Auth {
+	return Auth{username, apiKey, secret, strings.Replace(uuid.New(), "-", "", -1)}
+}
+
+func (auth Auth) calcSignature(r *http.Request) string {
+	keys := make([]string, 0, len(r.Form))
+	for k := range r.Form {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	sigStr := ""
+	for _, k := range keys {
+		if k != "api_sig" {
+			sigStr += k + r.FormValue(k)
+		}
+	}
+	sigStr += auth.secret
+
+	h := md5.New()
+	io.WriteString(h, sigStr)
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (auth Auth) checkApiDetails(r *http.Request) bool {
+	return r.FormValue("api_key") == auth.apiKey && r.FormValue("api_sig") == auth.calcSignature(r)
+}
+
+func (auth Auth) checkUsername(r *http.Request) bool {
+	return auth.checkApiDetails(r) && r.FormValue("username") == auth.username
+}
+
+func (auth Auth) checkSession(r *http.Request) bool {
+	return auth.checkApiDetails(r) && r.FormValue("sk") == auth.sessionId
+}
+
+type scrobbleHandler struct {
+	db         *data.Database
+	auth       Auth
+	responders map[string]http.Handler
+}
+
+func Scrobble(auth Auth, db *data.Database) http.Handler {
+	handler := &scrobbleHandler{db, auth, map[string]http.Handler{}}
+
+	handler.responders = map[string]http.Handler{
+		"auth.getmobilesession": filter(auth.checkUsername, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, `<lfm status="ok">
+  <session>
+    <name>%s</name>
+    <key>%s</key>
+    <subscriber>0</subscriber>
+  </session>
+</lfm>`, r.FormValue("username"), handler.auth.sessionId)
+		})),
+		"track.updatenowplaying": filter(auth.checkSession, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			playing := data.Playing{
+				Artist:      r.FormValue("artist"),
+				Album:       r.FormValue("album"),
+				AlbumArtist: r.FormValue("albumArtist"),
+				Track:       r.FormValue("track"),
+			}
+
+			log.Println("now playing:", playing)
+			respondPlaying(playing, w)
+		})),
+		"track.scrobble": filter(auth.checkSession, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			scrobble := data.Scrobble{
+				Artist:      r.FormValue("artist"),
+				Album:       r.FormValue("album"),
+				AlbumArtist: r.FormValue("albumArtist"),
+				Track:       r.FormValue("track"),
+				Timestamp:   mustParseInt(r.FormValue("timestamp")),
+			}
+
+			log.Println("scrobbled:", scrobble)
+			if err := handler.db.Add(scrobble); err != nil {
+				log.Println(err)
+			}
+			respondScrobble(scrobble, w)
+		})),
+	}
+
+	return handler
 }
 
 func respondScrobble(scrobble data.Scrobble, w io.Writer) {
@@ -48,46 +145,9 @@ func respondPlaying(playing data.Playing, w io.Writer) {
   </lfm>`, playing.Track, playing.Artist, playing.Album, playing.AlbumArtist)
 }
 
-// TODO: Deal with auth properly so this can be hosted on the web.
 func (handler *scrobbleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-
-	switch strings.ToLower(r.FormValue("method")) {
-	case "auth.getmobilesession":
-		fmt.Fprintf(w, `<lfm status="ok">
-  <session>
-    <name>%s</name>
-    <key>d580d57f32848f5dcf574d1ce18d78b2</key>
-    <subscriber>0</subscriber>
-  </session>
-</lfm>`, r.FormValue("username"))
-
-	case "track.updatenowplaying":
-
-		playing := data.Playing{
-			Artist:      r.FormValue("artist"),
-			Album:       r.FormValue("album"),
-			AlbumArtist: r.FormValue("albumArtist"),
-			Track:       r.FormValue("track"),
-		}
-
-		log.Println("now playing:", playing)
-		respondPlaying(playing, w)
-
-	case "track.scrobble":
-		scrobble := data.Scrobble{
-			Artist:      r.FormValue("artist"),
-			Album:       r.FormValue("album"),
-			AlbumArtist: r.FormValue("albumArtist"),
-			Track:       r.FormValue("track"),
-			Timestamp:   mustParseInt(r.FormValue("timestamp")),
-		}
-
-		log.Println("scrobbled:", scrobble)
-		if err := handler.db.Add(scrobble); err != nil {
-			log.Println(err)
-		}
-		respondScrobble(scrobble, w)
+	if responder, ok := handler.responders[strings.ToLower(r.FormValue("method"))]; ok {
+		responder.ServeHTTP(w, r)
 	}
 }
 

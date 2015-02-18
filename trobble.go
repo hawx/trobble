@@ -13,8 +13,12 @@ import (
 
 const helpMessage = `Usage: trobble [--db] [--port|--socket]
 
-  Catches messages from last.fm scrobblers (ymmv) and stores them in
-  a database instead.
+  Catches messages from last.fm scrobblers and stores them in a database
+  instead. It does not forward requests to last.fm.
+
+    --username <val>   # Username to use
+    --api-key <val>    # API Key used by connecting clients
+    --secret <val>     # Secret used by connecting clients
 
     --db <path>        # Path to sqlite3 db (default: 'trobble.db')
     --port <port>      # Port to serve on (default: '8080')
@@ -23,6 +27,10 @@ const helpMessage = `Usage: trobble [--db] [--port|--socket]
 `
 
 var (
+	username = flag.String("username", "", "")
+	apiKey   = flag.String("api-key", "", "")
+	secret   = flag.String("secret", "", "")
+
 	dbPath = flag.String("db", "trobble.db", "")
 	port   = flag.String("port", "8080", "")
 	socket = flag.String("socket", "", "")
@@ -43,7 +51,8 @@ func main() {
 	}
 	defer db.Close()
 
+	auth := handlers.NewAuth(*username, *apiKey, *secret)
 	http.Handle("/", handlers.Played(db))
-	http.Handle("/scrobble", handlers.Scrobble(db))
+	http.Handle("/scrobble/", handlers.Scrobble(auth, db))
 	serve.Serve(*port, *socket, http.DefaultServeMux)
 }
