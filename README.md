@@ -11,8 +11,12 @@ api:
 
 and returns dummy ok responses.
 
+Remember to set `--username`, `--api-key` and `--secret` as expected by the
+client. `--api-key` and `--secret` are best set differently to your valid lastfm
+details if possible.
+
 ``` bash
 $ go get github.com/hawx/trobble
-$ trobble
+$ trobble --username "Me" --api-key "..." --secret "..."
 ...
 ```
