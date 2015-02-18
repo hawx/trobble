@@ -16,10 +16,10 @@ func readable(t int64) string {
 	d := n.Sub(u)
 
 	if d.Hours() < 24 && n.Weekday() == u.Weekday() {
-		if d.Hours() == 0 {
-			return fmt.Sprintf("%d mintues ago", d.Minutes())
+		if d.Hours() < 1 {
+			return fmt.Sprintf("%d mintues ago", int(d.Minutes()))
 		}
-		return fmt.Sprintf("%d hours ago", d.Hours())
+		return fmt.Sprintf("%d hours ago", int(d.Hours()))
 	}
 
 	if d.Hours() < 48 && n.Weekday() == u.Weekday()+1 {
