@@ -73,47 +73,53 @@ type scrobbleHandler struct {
 }
 
 func Scrobble(auth Auth, db *data.Database) http.Handler {
-	handler := &scrobbleHandler{db, auth, map[string]http.Handler{}}
-
+	handler := new(scrobbleHandler)
+	handler.db = db
+	handler.auth = auth
 	handler.responders = map[string]http.Handler{
-		"auth.getmobilesession": filter(auth.checkUsername, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintf(w, `<lfm status="ok">
+		"auth.getmobilesession":  filter(auth.checkUsername, http.HandlerFunc(handler.getMobileSession)),
+		"track.updatenowplaying": filter(auth.checkSession, http.HandlerFunc(handler.updateNowPlaying)),
+		"track.scrobble":         filter(auth.checkSession, http.HandlerFunc(handler.scrobble)),
+	}
+	return handler
+}
+
+func (handler *scrobbleHandler) getMobileSession(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, `<lfm status="ok">
   <session>
     <name>%s</name>
     <key>%s</key>
     <subscriber>0</subscriber>
   </session>
 </lfm>`, r.FormValue("username"), handler.auth.sessionId)
-		})),
-		"track.updatenowplaying": filter(auth.checkSession, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			playing := data.Playing{
-				Artist:      r.FormValue("artist"),
-				Album:       r.FormValue("album"),
-				AlbumArtist: r.FormValue("albumArtist"),
-				Track:       r.FormValue("track"),
-			}
+}
 
-			log.Println("now playing:", playing)
-			respondPlaying(playing, w)
-		})),
-		"track.scrobble": filter(auth.checkSession, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			scrobble := data.Scrobble{
-				Artist:      r.FormValue("artist"),
-				Album:       r.FormValue("album"),
-				AlbumArtist: r.FormValue("albumArtist"),
-				Track:       r.FormValue("track"),
-				Timestamp:   mustParseInt(r.FormValue("timestamp")),
-			}
-
-			log.Println("scrobbled:", scrobble)
-			if err := handler.db.Add(scrobble); err != nil {
-				log.Println(err)
-			}
-			respondScrobble(scrobble, w)
-		})),
+func (handler *scrobbleHandler) updateNowPlaying(w http.ResponseWriter, r *http.Request) {
+	playing := data.Playing{
+		Artist:      r.FormValue("artist"),
+		Album:       r.FormValue("album"),
+		AlbumArtist: r.FormValue("albumArtist"),
+		Track:       r.FormValue("track"),
 	}
 
-	return handler
+	log.Println("now playing:", playing)
+	respondPlaying(playing, w)
+}
+
+func (handler *scrobbleHandler) scrobble(w http.ResponseWriter, r *http.Request) {
+	scrobble := data.Scrobble{
+		Artist:      r.FormValue("artist"),
+		Album:       r.FormValue("album"),
+		AlbumArtist: r.FormValue("albumArtist"),
+		Track:       r.FormValue("track"),
+		Timestamp:   mustParseInt(r.FormValue("timestamp")),
+	}
+
+	log.Println("scrobbled:", scrobble)
+	if err := handler.db.Add(scrobble); err != nil {
+		log.Println(err)
+	}
+	respondScrobble(scrobble, w)
 }
 
 func respondScrobble(scrobble data.Scrobble, w io.Writer) {
