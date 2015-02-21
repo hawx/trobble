@@ -58,7 +58,7 @@ func (d *Database) AddMultiple(scrobbles []Scrobble) error {
 	}
 
 	for _, scrobble := range scrobbles {
-		_, err := tx.Exec("INSERT INTO scrobbles VALUES(?, ?, ?, ?, ?)",
+		_, err := tx.Exec("INSERT OR IGNORE INTO scrobbles VALUES(?, ?, ?, ?, ?)",
 			scrobble.Artist,
 			scrobble.AlbumArtist,
 			scrobble.Album,
