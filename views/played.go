@@ -3,6 +3,7 @@ package views
 import (
 	"fmt"
 	"html/template"
+	"io"
 	"time"
 )
 
@@ -33,15 +34,69 @@ func readable(t int64) string {
 	return u.Format("02 Jan 2006")
 }
 
-var Played = template.Must(template.New("played").Funcs(template.FuncMap{
-	"datetime": datetime,
-	"readable": readable,
-}).Parse(played))
+type Pair struct {
+	Name string
+	Hide bool
+	Data interface{}
+}
+
+func pair(name string, show bool, data interface{}) *Pair {
+	return &Pair{name, !show, data}
+}
+
+var Played interface {
+	Execute(io.Writer, interface{}) error
+}
+
+func init() {
+	var tmpl = template.Must(template.New("played").Funcs(template.FuncMap{
+		"datetime": datetime,
+		"readable": readable,
+		"pair":     pair,
+	}).Parse(played))
+	tmpl = template.Must(tmpl.New("artistTab").Parse(artistTab))
+	tmpl = template.Must(tmpl.New("trackTab").Parse(trackTab))
+
+	Played = &wrappedTemplate{tmpl, "played"}
+}
+
+type wrappedTemplate struct {
+	t *template.Template
+	n string
+}
+
+func (w *wrappedTemplate) Execute(wr io.Writer, data interface{}) error {
+	return w.t.ExecuteTemplate(wr, w.n, data)
+}
+
+const artistTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
+  <ol>
+    {{ range .Data }}
+    <li>
+      <span class="artist">{{.Artist}}</span>
+      <span class="count">{{.Count}} plays</span>
+    </li>
+    {{ end }}
+  </ol>
+</li>`
+
+const trackTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
+  <ol>
+    {{ range .Data }}
+    <li>
+      <span class="artist">{{.Artist}}</span>
+      <span class="track">{{.Track}}</span>
+      <span class="count">{{.Count}} plays</span>
+    </li>
+    {{ end }}
+  </ol>
+</li>`
 
 const played = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>trobble</title>
     <style>
       body {
@@ -128,6 +183,11 @@ const played = `<!DOCTYPE html>
           float: right;
           font-style: italic;
       }
+
+      @media screen and (max-width: 30em) {
+        .recently-played time { display: none; }
+        .count { display: none; }
+      }
     </style>
   </head>
   <body>
@@ -153,52 +213,16 @@ const played = `<!DOCTYPE html>
       <h2>Top Artists</h2>
 
       <nav class="tabs-choice">
-        <h3 class="selected" data-id="tab-artists-overall">Overall</h3>
+        <h3 data-id="tab-artists-overall">Overall</h3>
         <h3 data-id="tab-artists-year">Year</h3>
-        <h3 data-id="tab-artists-month">Month</h3>
+        <h3 data-id="tab-artists-month" class="selected">Month</h3>
         <h3 data-id="tab-artists-week">Week</h3>
       </nav>
       <ul class="tabs-content">
-        <li id="tab-artists-overall">
-          <ol>
-            {{ range .TopArtists.Overall }}
-            <li>
-              <span class="artist">{{.Artist}}</span>
-              <span class="count">{{.Count}} plays</span>
-            </li>
-            {{ end }}
-          </ol>
-        </li>
-        <li class="hide" id="tab-artists-year">
-          <ol>
-            {{ range .TopArtists.Year }}
-            <li>
-              <span class="artist">{{.Artist}}</span>
-              <span class="count">{{.Count}} plays</span>
-            </li>
-            {{ end }}
-          </ol>
-        </li>
-        <li class="hide" id="tab-artists-month">
-          <ol>
-            {{ range .TopArtists.Month }}
-            <li>
-              <span class="artist">{{.Artist}}</span>
-              <span class="count">{{.Count}} plays</span>
-            </li>
-            {{ end }}
-          </ol>
-        </li>
-        <li class="hide" id="tab-artists-week">
-          <ol>
-            {{ range .TopArtists.Week }}
-            <li>
-              <span class="artist">{{.Artist}}</span>
-              <span class="count">{{.Count}} plays</span>
-            </li>
-            {{ end }}
-          </ol>
-        </li>
+        {{ template "artistTab" pair "tab-artists-overall" false .TopArtists.Overall }}
+        {{ template "artistTab" pair "tab-artists-year"    false .TopArtists.Year    }}
+        {{ template "artistTab" pair "tab-artists-month"   true  .TopArtists.Month   }}
+        {{ template "artistTab" pair "tab-artists-week"    false .TopArtists.Week    }}
       </ul>
     </section>
 
@@ -206,56 +230,16 @@ const played = `<!DOCTYPE html>
       <h2>Top Tracks</h2>
 
       <nav class="tabs-choice">
-        <h3 class="selected" data-id="tab-tracks-overall">Overall</h3>
+        <h3 data-id="tab-tracks-overall">Overall</h3>
         <h3 data-id="tab-tracks-year">Year</h3>
-        <h3 data-id="tab-tracks-month">Month</h3>
+        <h3 data-id="tab-tracks-month" class="selected">Month</h3>
         <h3 data-id="tab-tracks-week">Week</h3>
       </nav>
       <ul class="tabs-content">
-        <li id="tab-tracks-overall">
-          <ol>
-            {{ range .TopTracks.Overall }}
-            <li>
-              <span class="artist">{{.Artist}}</span>
-              <span class="track">{{.Track}}</span>
-              <span class="count">{{.Count}} plays</span>
-            </li>
-            {{ end }}
-          </ol>
-        </li>
-        <li class="hide" id="tab-tracks-year">
-          <ol>
-            {{ range .TopTracks.Year }}
-            <li>
-              <span class="artist">{{.Artist}}</span>
-              <span class="track">{{.Track}}</span>
-              <span class="count">{{.Count}} plays</span>
-            </li>
-            {{ end }}
-          </ol>
-        </li>
-        <li class="hide" id="tab-tracks-month">
-          <ol>
-            {{ range .TopTracks.Month }}
-            <li>
-              <span class="artist">{{.Artist}}</span>
-              <span class="track">{{.Track}}</span>
-              <span class="count">{{.Count}} plays</span>
-            </li>
-            {{ end }}
-          </ol>
-        </li>
-        <li class="hide" id="tab-tracks-week">
-          <ol>
-            {{ range .TopTracks.Week }}
-            <li>
-              <span class="artist">{{.Artist}}</span>
-              <span class="track">{{.Track}}</span>
-              <span class="count">{{.Count}} plays</span>
-            </li>
-            {{ end }}
-          </ol>
-        </li>
+        {{ template "trackTab" pair "tab-tracks-overall" false .TopTracks.Overall }}
+        {{ template "trackTab" pair "tab-tracks-year"    false .TopTracks.Year    }}
+        {{ template "trackTab" pair "tab-tracks-month"   true  .TopTracks.Month   }}
+        {{ template "trackTab" pair "tab-tracks-week"    false .TopTracks.Week    }}
       </ul>
     </section>
 
