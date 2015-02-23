@@ -20,6 +20,9 @@ const helpMessage = `Usage: trobble [--db] [--port|--socket]
     --api-key <val>    # API Key used by connecting clients
     --secret <val>     # Secret used by connecting clients
 
+    --title <val>      # Title of page (default: 'trobble')
+    --url <val>        # Url to host (default: 'http://localhost:8080/')
+
     --db <path>        # Path to sqlite3 db (default: 'trobble.db')
     --port <port>      # Port to serve on (default: '8080')
     --socket <sock>    # Socket to serve on
@@ -30,6 +33,9 @@ var (
 	username = flag.String("username", "", "")
 	apiKey   = flag.String("api-key", "", "")
 	secret   = flag.String("secret", "", "")
+
+	title = flag.String("title", "trobble", "")
+	url   = flag.String("url", "http://localhost:8080/", "")
 
 	dbPath = flag.String("db", "trobble.db", "")
 	port   = flag.String("port", "8080", "")
@@ -52,7 +58,8 @@ func main() {
 	defer db.Close()
 
 	auth := handlers.NewAuth(*username, *apiKey, *secret)
-	http.Handle("/", handlers.Played(db))
+	http.Handle("/", handlers.Played(db, *title))
+	http.Handle("/feed", handlers.Feed(db, *title, *url))
 	http.Handle("/scrobble/", handlers.Scrobble(auth, db))
 	serve.Serve(*port, *socket, http.DefaultServeMux)
 }

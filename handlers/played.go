@@ -9,6 +9,7 @@ import (
 )
 
 type playedCtx struct {
+	Title          string
 	TotalPlays     int
 	RecentlyPlayed []data.Scrobble
 
@@ -22,11 +23,12 @@ type playedCtx struct {
 }
 
 type playedHandler struct {
-	db *data.Database
+	db    *data.Database
+	title string
 }
 
-func Played(db *data.Database) http.Handler {
-	return &playedHandler{db}
+func Played(db *data.Database, title string) http.Handler {
+	return &playedHandler{db, title}
 }
 
 // Simplified constants
@@ -40,6 +42,7 @@ func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
 	ctx := playedCtx{}
+	ctx.Title = h.title
 	ctx.TotalPlays = h.db.TotalPlays()
 	ctx.RecentlyPlayed = h.db.RecentlyPlayed()
 

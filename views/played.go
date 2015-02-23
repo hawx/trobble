@@ -97,7 +97,8 @@ const played = `<!DOCTYPE html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>trobble</title>
+    <title>{{.Title}}</title>
+    <link rel="alternate" type="application/rss+xml" href="/feed" />
     <style>
       body {
           font: 16px/1.3em Georgia;
@@ -192,7 +193,7 @@ const played = `<!DOCTYPE html>
   </head>
   <body>
     <header>
-      <h1>trobble</h1>
+      <h1>{{.Title}}</h1>
       <div>{{.TotalPlays}} plays</div>
     </header>
 
