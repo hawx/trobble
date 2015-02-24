@@ -106,13 +106,22 @@ func (handler *scrobbleHandler) updateNowPlaying(w http.ResponseWriter, r *http.
 	respondPlaying(playing, w)
 }
 
+func formValue(r *http.Request, keys ...string) string {
+	for _, key := range keys {
+		if val := r.FormValue(key); val != "" {
+			return val
+		}
+	}
+	return ""
+}
+
 func (handler *scrobbleHandler) scrobble(w http.ResponseWriter, r *http.Request) {
 	scrobble := data.Scrobble{
-		Artist:      r.FormValue("artist"),
-		Album:       r.FormValue("album"),
-		AlbumArtist: r.FormValue("albumArtist"),
-		Track:       r.FormValue("track"),
-		Timestamp:   mustParseInt(r.FormValue("timestamp")),
+		Artist:      formValue(r, "artist", "artist[0]"),
+		Album:       formValue(r, "album", "album[0]"),
+		AlbumArtist: formValue(r, "albumArtist", "albumArtist[0]"),
+		Track:       formValue(r, "track", "track[0]"),
+		Timestamp:   mustParseInt(formValue(r, "timestamp", "timestamp[0]")),
 	}
 
 	log.Println("scrobbled:", scrobble)
