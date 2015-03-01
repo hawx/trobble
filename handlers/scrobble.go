@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"crypto/md5"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"log"
@@ -14,14 +15,25 @@ import (
 	"github.com/hawx/trobble/data"
 )
 
+type errorResponse struct {
+	XMLName xml.Name `xml:"lfm"`
+	Status  string   `xml:"status,attr"`
+	Error   struct {
+		Code int    `xml:"code,attr"`
+		Text string `xml:",chardata"`
+	} `xml:"error"`
+}
+
 func filter(pred func(*http.Request) bool, sub http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if pred(r) {
 			sub.ServeHTTP(w, r)
 		} else {
-			fmt.Fprintf(w, `<lfm status="failed">
-  <error code="4">Authentication Failed</error>
-</lfm>`)
+			resp := new(errorResponse)
+			resp.Status = "failed"
+			resp.Error.Code = 4
+			resp.Error.Text = "Authentication Failed"
+			xml.NewEncoder(w).Encode(resp)
 		}
 	})
 }
@@ -84,14 +96,36 @@ func Scrobble(auth Auth, db *data.Database) http.Handler {
 	return handler
 }
 
+type sessionResponse struct {
+	XMLName xml.Name `xml:"lfm"`
+	Status  string   `xml:"status,attr"`
+	Session struct {
+		Name       string `xml:"name"`
+		Key        string `xml:"key"`
+		Subscriber int    `xml:"subscriber"`
+	} `xml:"session"`
+}
+
 func (handler *scrobbleHandler) getMobileSession(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, `<lfm status="ok">
-  <session>
-    <name>%s</name>
-    <key>%s</key>
-    <subscriber>0</subscriber>
-  </session>
-</lfm>`, r.FormValue("username"), handler.auth.sessionId)
+	resp := new(sessionResponse)
+	resp.Status = "ok"
+	resp.Session.Name = r.FormValue("username")
+	resp.Session.Key = handler.auth.sessionId
+	resp.Session.Subscriber = 0
+
+	xml.NewEncoder(w).Encode(resp)
+}
+
+type playingResponse struct {
+	XMLName    xml.Name `xml:"lfm"`
+	Status     string   `xml:"status,attr"`
+	NowPlaying struct {
+		Track          string `xml:"track"`
+		Artist         string `xml:"artist"`
+		Album          string `xml:"album"`
+		AlbumArtist    string `xml:"albumArtist"`
+		IgnoredMessage string `xml:"ignoredMessage"`
+	} `xml:"nowplaying"`
 }
 
 func (handler *scrobbleHandler) updateNowPlaying(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +137,14 @@ func (handler *scrobbleHandler) updateNowPlaying(w http.ResponseWriter, r *http.
 	}
 
 	log.Println("now playing:", playing)
-	respondPlaying(playing, w)
+	resp := new(playingResponse)
+	resp.Status = "ok"
+	resp.NowPlaying.Track = playing.Track
+	resp.NowPlaying.Artist = playing.Artist
+	resp.NowPlaying.Album = playing.Album
+	resp.NowPlaying.AlbumArtist = playing.AlbumArtist
+
+	xml.NewEncoder(w).Encode(resp)
 }
 
 func formValue(r *http.Request, keys ...string) string {
@@ -113,6 +154,23 @@ func formValue(r *http.Request, keys ...string) string {
 		}
 	}
 	return ""
+}
+
+type scrobbleResponse struct {
+	XMLName   xml.Name `xml:"lfm"`
+	Status    string   `xml:"status,attr"`
+	Scrobbles struct {
+		Accepted int `xml:"accepted,attr"`
+		Ignored  int `xml:"ignored,attr"`
+		Scrobble struct {
+			Track          string `xml:"track"`
+			Artist         string `xml:"artist"`
+			Album          string `xml:"album"`
+			AlbumArtist    string `xml:"albumArtist"`
+			Timestamp      int64  `xml:"timestamp"`
+			IgnoredMessage string `xml:"ignoredMessage"`
+		} `xml:"scrobble"`
+	} `xml:"scrobbles"`
 }
 
 func (handler *scrobbleHandler) scrobble(w http.ResponseWriter, r *http.Request) {
@@ -126,38 +184,20 @@ func (handler *scrobbleHandler) scrobble(w http.ResponseWriter, r *http.Request)
 
 	log.Println("scrobbled:", scrobble)
 	if err := handler.db.Add(scrobble); err != nil {
-		log.Println(err)
+		log.Println(err) // maybe return error response???
 	}
-	respondScrobble(scrobble, w)
-}
 
-func respondScrobble(scrobble data.Scrobble, w io.Writer) {
-	fmt.Fprintf(w, `<?xml version='1.0' encoding='utf-8'?>
-  <lfm status="ok">
-    <scrobbles accepted="1" ignored="0">
-      <scrobble>
-        <track corrected="0">%s</track>
-        <artist corrected="0">%s</artist>
-        <album corrected="0">%s</album>
-        <albumArtist corrected="0">%s</albumArtist>
-        <timestamp>%d</timestamp>
-        <ignoredMessage code="0"></ignoredMessage>
-      </scrobble>
-    </scrobbles>
-  </lfm>`, scrobble.Track, scrobble.Artist, scrobble.Album, scrobble.AlbumArtist, scrobble.Timestamp)
-}
+	resp := new(scrobbleResponse)
+	resp.Status = "ok"
+	resp.Scrobbles.Accepted = 1
+	resp.Scrobbles.Ignored = 0
+	resp.Scrobbles.Scrobble.Track = scrobble.Track
+	resp.Scrobbles.Scrobble.Artist = scrobble.Artist
+	resp.Scrobbles.Scrobble.Album = scrobble.Album
+	resp.Scrobbles.Scrobble.AlbumArtist = scrobble.AlbumArtist
+	resp.Scrobbles.Scrobble.Timestamp = scrobble.Timestamp
 
-func respondPlaying(playing data.Playing, w io.Writer) {
-	fmt.Fprintf(w, `<?xml version='1.0' encoding='utf-8'?>
-  <lfm status="ok">
-    <nowplaying>
-      <track corrected="0">%s</track>
-      <artist corrected="0">%s</artist>
-      <album corrected="0">%s</album>
-      <albumArtist corrected="0">%s</albumArtist>
-      <ignoredMessage code="0"></ignoredMessage>
-   </nowplaying>
-  </lfm>`, playing.Track, playing.Artist, playing.Album, playing.AlbumArtist)
+	xml.NewEncoder(w).Encode(resp)
 }
 
 func (handler *scrobbleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
