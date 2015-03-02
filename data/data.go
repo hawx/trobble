@@ -31,13 +31,36 @@ func (d *Database) setup() error {
     Album       TEXT,
     Track       TEXT,
     Timestamp   INTEGER PRIMARY KEY
-  )`)
+  );
+
+  CREATE TABLE IF NOT EXISTS nowplaying (
+    Id          INTEGER PRIMARY KEY,
+    Artist      TEXT,
+    AlbumArtist TEXT,
+    Album       TEXT,
+    Track       TEXT,
+    Timestamp   INTEGER
+  );
+
+  INSERT OR IGNORE INTO nowplaying VALUES(1, "", "", "", "", 0);
+`)
 
 	return err
 }
 
 func (d *Database) Close() error {
 	return d.db.Close()
+}
+
+func (d *Database) NowPlaying(playing Playing) error {
+	_, err := d.db.Exec("UPDATE nowplaying SET Artist=?, AlbumArtist=?, Album=?, Track=?, Timestamp=? WHERE Id=1",
+		playing.Artist,
+		playing.AlbumArtist,
+		playing.Album,
+		playing.Track,
+		time.Now().Unix())
+
+	return err
 }
 
 func (d *Database) Add(scrobble Scrobble) error {
@@ -72,6 +95,23 @@ func (d *Database) AddMultiple(scrobbles []Scrobble) error {
 	}
 
 	return tx.Commit()
+}
+
+func (d *Database) GetNowPlaying() (*Track, bool) {
+	row := d.db.QueryRow("SELECT Artist, Track, Timestamp FROM nowplaying WHERE Id=1")
+
+	var timestamp int64
+	var track Track
+	if err := row.Scan(&track.Artist, &track.Track, &timestamp); err != nil {
+		log.Println(err)
+		return nil, false
+	}
+
+	if time.Unix(timestamp, 0).After(time.Now().Add(-10 * time.Minute)) {
+		return &track, true
+	}
+
+	return nil, false
 }
 
 func (d *Database) RecentlyPlayed() (scrobbles []Scrobble) {

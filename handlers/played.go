@@ -12,6 +12,7 @@ type playedCtx struct {
 	Title          string
 	TotalPlays     int
 	RecentlyPlayed []data.Scrobble
+	NowPlaying     *data.Track
 
 	TopArtists struct {
 		Overall, Year, Month, Week []data.Artist
@@ -45,6 +46,11 @@ func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx.Title = h.title
 	ctx.TotalPlays = h.db.TotalPlays()
 	ctx.RecentlyPlayed = h.db.RecentlyPlayed()
+
+	nowPlaying, ok := h.db.GetNowPlaying()
+	if ok {
+		ctx.NowPlaying = nowPlaying
+	}
 
 	ctx.TopArtists.Overall = h.db.TopArtists(10)
 	ctx.TopArtists.Year = h.db.TopArtistsAfter(10, -Year)

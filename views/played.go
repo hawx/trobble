@@ -109,6 +109,10 @@ const played = `<!DOCTYPE html>
           margin: 1rem 0 2rem;
       }
 
+      .nowplaying {
+          margin-top: 1em;
+      }
+
       section {
           margin: 1rem 0 2rem;
           border-top: 1px dotted;
@@ -195,6 +199,13 @@ const played = `<!DOCTYPE html>
     <header>
       <h1>{{.Title}}</h1>
       <div>{{.TotalPlays}} plays</div>
+      {{ if .NowPlaying }}
+      <div class="nowplaying">
+        <span class="icon">&#x266B;</span>
+        <span class="artist">{{.NowPlaying.Artist}}</span>
+        <span class="track">{{.NowPlaying.Track}}</span>
+      </div>
+      {{ end }}
     </header>
 
     <section class="recently-played">
