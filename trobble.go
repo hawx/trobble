@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/hawx/serve"
+	"hawx.me/code/serve"
 	"hawx.me/code/trobble/data"
 	"hawx.me/code/trobble/handlers"
 )
