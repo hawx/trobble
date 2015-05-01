@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/hawx/serve"
-	"github.com/hawx/trobble/data"
-	"github.com/hawx/trobble/handlers"
+	"hawx.me/code/trobble/data"
+	"hawx.me/code/trobble/handlers"
 )
 
 const helpMessage = `Usage: trobble [--db] [--port|--socket]

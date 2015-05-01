@@ -16,7 +16,7 @@ client. `--api-key` and `--secret` are best set differently to your valid lastfm
 details if possible.
 
 ``` bash
-$ go get github.com/hawx/trobble
+$ go get hawx.me/code/trobble
 $ trobble --username "Me" --api-key "..." --secret "..."
 ...
 ```

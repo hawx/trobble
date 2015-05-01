@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"code.google.com/p/go-uuid/uuid"
-	"github.com/hawx/trobble/data"
+	"hawx.me/code/trobble/data"
 )
 
 type errorResponse struct {

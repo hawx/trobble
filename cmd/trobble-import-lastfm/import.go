@@ -2,15 +2,14 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
+	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 
-	"github.com/hawx/trobble/data"
-
-	"flag"
-	"fmt"
-	"log"
+	"hawx.me/code/trobble/data"
 )
 
 const helpMessage = `Usage: trobble-import [--db] FILE

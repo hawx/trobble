@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hawx/trobble/data"
-	"github.com/hawx/trobble/views"
+	"hawx.me/code/trobble/data"
+	"hawx.me/code/trobble/views"
 )
 
 type playedCtx struct {

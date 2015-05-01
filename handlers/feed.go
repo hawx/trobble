@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/feeds"
-	"github.com/hawx/trobble/data"
+	"hawx.me/code/trobble/data"
 )
 
 func Feed(db *data.Database, title, url string) http.Handler {
