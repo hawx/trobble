@@ -176,6 +176,24 @@ const played = `<!DOCTYPE html>
           max-width: 40rem;
       }
 
+      table {
+          border-collapse: collapse;
+          width: 100%;
+      }
+
+      td {
+          padding: 0;
+          position: relative;
+      }
+
+      td .track {
+          position: absolute;
+          max-width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+      }
+
       .artist {
           font-weight: bold;
       }
@@ -210,15 +228,17 @@ const played = `<!DOCTYPE html>
 
     <section class="recently-played">
       <h2>Recently played</h2>
-      <ol>
+      <table>
         {{ range .RecentlyPlayed }}
-        <li>
-          <span class="artist">{{.Artist}}</span>
-          <span class="track">{{.Track}}</span>
-          <time datetime="{{.Timestamp | datetime}}">{{.Timestamp | readable}}</time>
-        </li>
+        <tr>
+          <td>
+            <span class="artist">{{.Artist}}</span>
+            <span class="track">{{.Track}}</span>
+          </td>
+          <td><time datetime="{{.Timestamp | datetime}}">{{.Timestamp | readable}}</time></td>
+        </tr>
         {{ end }}
-      </ol>
+      </table>
     </section>
 
     <section class="top-artists">
