@@ -81,15 +81,17 @@ const artistTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
 </li>`
 
 const trackTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
-  <ol>
+  <table>
     {{ range .Data }}
-    <li>
-      <span class="artist">{{.Artist}}</span>
-      <span class="track">{{.Track}}</span>
-      <span class="count">{{.Count}} plays</span>
-    </li>
+    <tr>
+      <td>
+        <span class="artist">{{.Artist}}</span>
+        <span class="track">{{.Track}}</span>
+      </td>
+      <td><span class="count">{{.Count}} plays</span></td>
+    </tr>
     {{ end }}
-  </ol>
+  </table>
 </li>`
 
 const played = `<!DOCTYPE html>
@@ -188,7 +190,7 @@ const played = `<!DOCTYPE html>
 
       td .track {
           position: absolute;
-          max-width: 100%;
+          max-width: 95%;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
