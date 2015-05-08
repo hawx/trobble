@@ -181,19 +181,18 @@ const played = `<!DOCTYPE html>
       table {
           border-collapse: collapse;
           width: 100%;
+          table-layout: fixed;
       }
 
       td {
           padding: 0;
-          position: relative;
-      }
-
-      td .track {
-          position: absolute;
-          max-width: 95%;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+      }
+
+      tr td:last-child {
+          width: 140px;
       }
 
       .artist {
