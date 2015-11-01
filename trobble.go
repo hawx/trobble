@@ -58,8 +58,9 @@ func main() {
 	defer db.Close()
 
 	auth := handlers.NewAuth(*username, *apiKey, *secret)
-	http.Handle("/", handlers.Played(db, *title))
+	http.Handle("/", handlers.Index(db, *title))
 	http.Handle("/feed", handlers.Feed(db, *title, *url))
+	http.Handle("/played", handlers.Played(db, *title))
 	http.Handle("/scrobble/", handlers.Scrobble(auth, db))
 	serve.Serve(*port, *socket, http.DefaultServeMux)
 }

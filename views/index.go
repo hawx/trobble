@@ -44,7 +44,7 @@ func pair(name string, show bool, data interface{}) *Pair {
 	return &Pair{name, !show, data}
 }
 
-var Played interface {
+var Index interface {
 	Execute(io.Writer, interface{}) error
 }
 
@@ -57,7 +57,7 @@ func init() {
 	tmpl = template.Must(tmpl.New("artistTab").Parse(artistTab))
 	tmpl = template.Must(tmpl.New("trackTab").Parse(trackTab))
 
-	Played = &wrappedTemplate{tmpl, "played"}
+	Index = &wrappedTemplate{tmpl, "played"}
 }
 
 type wrappedTemplate struct {
@@ -178,6 +178,11 @@ const played = `<!DOCTYPE html>
           max-width: 40rem;
       }
 
+      .more {
+          color: rgb(0, 20, 130);
+          float: right;
+      }
+
       table {
           border-collapse: collapse;
           width: 100%;
@@ -239,6 +244,7 @@ const played = `<!DOCTYPE html>
         </tr>
         {{ end }}
       </table>
+      <a class="more" href="/played">More</a>
     </section>
 
     <section class="top-artists">
