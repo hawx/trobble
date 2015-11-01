@@ -70,14 +70,14 @@ func (w *wrappedTemplate) Execute(wr io.Writer, data interface{}) error {
 }
 
 const artistTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
-  <ol>
+  <table>
     {{ range .Data }}
-    <li>
-      <span class="artist">{{.Artist}}</span>
-      <span class="count">{{.Count}} plays</span>
-    </li>
+    <tr>
+      <td><span class="artist">{{.Artist}}</span></td>
+      <td><span class="count">{{.Count}} plays</span></td>
+    <tr/>
     {{ end }}
-  </ol>
+  </table>
 </li>`
 
 const trackTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
@@ -209,8 +209,7 @@ const played = `<!DOCTYPE html>
       }
 
       @media screen and (max-width: 30em) {
-        .recently-played time { display: none; }
-        .count { display: none; }
+        table tr td:last-child { display: none; }
       }
     </style>
   </head>
