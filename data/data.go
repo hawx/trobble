@@ -139,6 +139,33 @@ func (d *Database) RecentlyPlayed() (scrobbles []Scrobble) {
 	return
 }
 
+func (d *Database) Played(from time.Time) (scrobbles []Scrobble) {
+	rows, err := d.db.Query("SELECT Artist, Album, AlbumArtist, Track, Timestamp FROM scrobbles WHERE Timestamp < ? ORDER BY Timestamp DESC LIMIT 100",
+		from)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var scrobble Scrobble
+		if err := rows.Scan(&scrobble.Artist, &scrobble.Album, &scrobble.AlbumArtist, &scrobble.Track, &scrobble.Timestamp); err != nil {
+			log.Println(err)
+			return
+		}
+		scrobbles = append(scrobbles, scrobble)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Println(err)
+		return
+	}
+
+	return
+}
+
 func (d *Database) TotalPlays() (count int) {
 	err := d.db.QueryRow("SELECT COUNT(*) FROM scrobbles").Scan(&count)
 	if err != nil {
