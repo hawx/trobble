@@ -20,7 +20,10 @@ type DatedTracks struct {
 }
 
 type playedCtx struct {
-	Title    string
+	Title      string
+	TotalPlays int
+	NowPlaying *data.Track
+
 	Tracks   []DatedTracks
 	MoreTime string
 }
@@ -47,6 +50,11 @@ func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx := playedCtx{}
 	ctx.Title = h.title
+	ctx.TotalPlays = h.db.TotalPlays()
+	if nowPlaying, ok := h.db.GetNowPlaying(); ok {
+		ctx.NowPlaying = nowPlaying
+	}
+
 	ctx.Tracks = []DatedTracks{}
 
 	tracks := h.db.Played(fromTime)

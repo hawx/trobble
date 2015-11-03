@@ -9,6 +9,7 @@ import (
 	"hawx.me/code/serve"
 	"hawx.me/code/trobble/data"
 	"hawx.me/code/trobble/handlers"
+	"hawx.me/code/trobble/views"
 )
 
 const helpMessage = `Usage: trobble [--db] [--port|--socket]
@@ -16,16 +17,16 @@ const helpMessage = `Usage: trobble [--db] [--port|--socket]
   Catches messages from last.fm scrobblers and stores them in a database
   instead. It does not forward requests to last.fm.
 
-    --username <val>   # Username to use
-    --api-key <val>    # API Key used by connecting clients
-    --secret <val>     # Secret used by connecting clients
+    --username VAL     # Username to use
+    --api-key VAL      # API Key used by connecting clients
+    --secret VAL       # Secret used by connecting clients
 
-    --title <val>      # Title of page (default: 'trobble')
-    --url <val>        # Url to host (default: 'http://localhost:8080/')
+    --title TITLE      # Title of page (default: 'trobble')
+    --url URL          # Url to host (default: 'http://localhost:8080/')
 
-    --db <path>        # Path to sqlite3 db (default: 'trobble.db')
-    --port <port>      # Port to serve on (default: '8080')
-    --socket <sock>    # Socket to serve on
+    --db PATH          # Path to sqlite3 db (default: 'trobble.db')
+    --port PORT        # Port to serve on (default: '8080')
+    --socket SOCK      # Socket to serve on
     --help             # Display this message
 `
 
@@ -57,10 +58,16 @@ func main() {
 	}
 	defer db.Close()
 
-	auth := handlers.NewAuth(*username, *apiKey, *secret)
 	http.Handle("/", handlers.Index(db, *title))
 	http.Handle("/feed", handlers.Feed(db, *title, *url))
 	http.Handle("/played", handlers.Played(db, *title))
+	http.HandleFunc("/styles.css", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/css")
+		fmt.Fprint(w, views.Styles)
+	})
+
+	auth := handlers.NewAuth(*username, *apiKey, *secret)
 	http.Handle("/scrobble/", handlers.Scrobble(auth, db))
+
 	serve.Serve(*port, *socket, http.DefaultServeMux)
 }

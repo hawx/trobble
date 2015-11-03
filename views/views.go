@@ -23,6 +23,7 @@ func init() {
 		"pair":     pair,
 	}).Parse(index))
 	tmpl = template.Must(tmpl.New("played").Parse(played))
+	tmpl = template.Must(tmpl.New("header").Parse(header))
 	tmpl = template.Must(tmpl.New("artistTab").Parse(artistTab))
 	tmpl = template.Must(tmpl.New("trackTab").Parse(trackTab))
 
