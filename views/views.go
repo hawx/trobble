@@ -31,16 +31,16 @@ func init() {
 }
 
 func datetime(t int64) string {
-	return time.Unix(t, 0).Format(time.RFC3339)
+	return time.Unix(t, 0).UTC().Format(time.RFC3339)
 }
 
 func kitchen(t int64) string {
-	return time.Unix(t, 0).Format(time.Kitchen)
+	return time.Unix(t, 0).UTC().Format(time.Kitchen)
 }
 
 func readable(t int64) string {
-	n := time.Now()
-	u := time.Unix(t, 0)
+	n := time.Now().UTC()
+	u := time.Unix(t, 0).UTC()
 	d := n.Sub(u)
 
 	if d.Hours() < 24 && n.Weekday() == u.Weekday() {
