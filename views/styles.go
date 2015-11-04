@@ -112,6 +112,11 @@ tr td:last-child {
     font-weight: bold;
 }
 
+.artist a {
+    color: black;
+    text-decoration: none;
+}
+
 .artist + .track {
     margin-left: .2rem;
 }
@@ -119,6 +124,33 @@ tr td:last-child {
 time, .count {
     float: right;
     font-style: italic;
+}
+
+.hero {
+    margin: 0;
+}
+
+.hero h1 {
+    position: absolute;
+    margin-left: 3rem;
+    margin-top: 3rem;
+}
+
+.graph {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    flex-flow: space-between;
+    align-items: flex-end;
+    list-style: none;
+    height: 6rem;
+    padding-left: 0;
+}
+
+.graph li {
+    width: 1rem;
+    display: block;
+    background: #ccc;
 }
 
 @media screen and (max-width: 30em) {

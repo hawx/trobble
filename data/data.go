@@ -237,3 +237,68 @@ func (d *Database) TopTracksAfter(limit int, after time.Duration) (tracks []Trac
 
 	return
 }
+
+func (d *Database) ArtistTopTracks(name string, limit int) (tracks []Track) {
+	rows, err := d.db.Query("SELECT Artist, Track, COUNT(*) AS C FROM scrobbles WHERE Artist = ? GROUP BY Artist, Track ORDER BY C DESC LIMIT ?",
+		name,
+		limit)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var track Track
+		if err := rows.Scan(&track.Artist, &track.Track, &track.Count); err != nil {
+			log.Println(err)
+			return
+		}
+		tracks = append(tracks, track)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Println(err)
+		return
+	}
+
+	return
+}
+
+func (d *Database) ArtistPlays(name string) (plays []PlayCount) {
+	rows, err := d.db.Query("SELECT COUNT(Timestamp), strftime('%Y', Timestamp, 'unixepoch'), strftime('%m', Timestamp, 'unixepoch') "+
+		"FROM scrobbles "+
+		"WHERE Artist = ? "+
+		"GROUP BY strftime('%Y-%m', Timestamp, 'unixepoch')",
+		name)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var count int
+		var year int
+		var month int
+		if err := rows.Scan(&count, &year, &month); err != nil {
+			log.Println(err)
+			return
+		}
+
+		plays = append(plays, PlayCount{
+			Year:  year,
+			Month: time.Month(month),
+			Count: count,
+		})
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Println(err)
+		return
+	}
+
+	return
+}

@@ -1,5 +1,7 @@
 package data
 
+import "time"
+
 type Scrobble struct {
 	Artist, AlbumArtist, Album, Track string
 	Timestamp                         int64
@@ -18,4 +20,10 @@ type Track struct {
 	Artist string
 	Track  string
 	Count  int
+}
+
+type PlayCount struct {
+	Year  int
+	Month time.Month
+	Count int
 }

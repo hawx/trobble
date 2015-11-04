@@ -7,11 +7,7 @@ import (
 	"time"
 )
 
-var Index interface {
-	Execute(io.Writer, interface{}) error
-}
-
-var Played interface {
+var Index, Played, Artist interface {
 	Execute(io.Writer, interface{}) error
 }
 
@@ -21,14 +17,17 @@ func init() {
 		"kitchen":  kitchen,
 		"readable": readable,
 		"pair":     pair,
+		"percent":  percent,
 	}).Parse(index))
 	tmpl = template.Must(tmpl.New("played").Parse(played))
+	tmpl = template.Must(tmpl.New("artist").Parse(artist))
 	tmpl = template.Must(tmpl.New("header").Parse(header))
 	tmpl = template.Must(tmpl.New("artistTab").Parse(artistTab))
 	tmpl = template.Must(tmpl.New("trackTab").Parse(trackTab))
 
 	Index = &wrappedTemplate{tmpl, "index"}
 	Played = &wrappedTemplate{tmpl, "played"}
+	Artist = &wrappedTemplate{tmpl, "artist"}
 }
 
 func datetime(t int64) string {
@@ -60,6 +59,10 @@ func readable(t int64) string {
 	}
 
 	return u.Format("02 Jan 2006")
+}
+
+func percent(a, b int) int {
+	return int(float64(a) / float64(b) * 100)
 }
 
 type Pair struct {

@@ -4,7 +4,7 @@ const artistTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
   <table>
     {{ range .Data }}
     <tr>
-      <td><span class="artist">{{.Artist}}</span></td>
+      <td><span class="artist"><a href="/artist/{{.Artist | urlquery}}">{{.Artist}}</a></span></td>
       <td><span class="count">{{.Count}} plays</span></td>
     <tr/>
     {{ end }}
@@ -16,7 +16,7 @@ const trackTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
     {{ range .Data }}
     <tr>
       <td>
-        <span class="artist">{{.Artist}}</span>
+        <span class="artist"><a href="/artist/{{.Artist | urlquery}}">{{.Artist}}</a></span>
         <span class="track">{{.Track}}</span>
       </td>
       <td><span class="count">{{.Count}} plays</span></td>
@@ -43,7 +43,7 @@ const index = `<!DOCTYPE html>
         {{ range .RecentlyPlayed }}
         <tr>
           <td>
-            <span class="artist">{{.Artist}}</span>
+            <span class="artist"><a href="/artist/{{.Artist | urlquery}}">{{.Artist}}</a></span>
             <span class="track">{{.Track}}</span>
           </td>
           <td><time datetime="{{.Timestamp | datetime}}">{{.Timestamp | readable}}</time></td>

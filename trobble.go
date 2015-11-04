@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"hawx.me/code/route"
 	"hawx.me/code/serve"
 	"hawx.me/code/trobble/data"
 	"hawx.me/code/trobble/handlers"
@@ -58,16 +59,17 @@ func main() {
 	}
 	defer db.Close()
 
-	http.Handle("/", handlers.Index(db, *title))
-	http.Handle("/feed", handlers.Feed(db, *title, *url))
-	http.Handle("/played", handlers.Played(db, *title))
-	http.HandleFunc("/styles.css", func(w http.ResponseWriter, r *http.Request) {
+	route.Handle("/", handlers.Index(db, *title))
+	route.Handle("/feed", handlers.Feed(db, *title, *url))
+	route.Handle("/played", handlers.Played(db, *title))
+	route.Handle("/artist/:name", handlers.Artist(db, *title))
+	route.HandleFunc("/styles.css", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/css")
 		fmt.Fprint(w, views.Styles)
 	})
 
 	auth := handlers.NewAuth(*username, *apiKey, *secret)
-	http.Handle("/scrobble/", handlers.Scrobble(auth, db))
+	route.Handle("/scrobble/*any", handlers.Scrobble(auth, db))
 
-	serve.Serve(*port, *socket, http.DefaultServeMux)
+	serve.Serve(*port, *socket, route.Default)
 }
