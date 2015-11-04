@@ -58,7 +58,7 @@ func (d *Database) NowPlaying(playing Playing) error {
 		playing.AlbumArtist,
 		playing.Album,
 		playing.Track,
-		time.Now().Unix())
+		time.Now().UTC().Unix())
 
 	return err
 }
