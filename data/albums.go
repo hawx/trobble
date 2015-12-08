@@ -21,6 +21,10 @@ func (d *Database) ArtistTopAlbums(name string, limit int) (albums []Album) {
 		if err = rows.Scan(&album.Artist, &album.Album, &album.Count); err != nil {
 			panic(err)
 		}
+
+		if album.Album == "" {
+			album.Album = "—"
+		}
 		albums = append(albums, album)
 	}
 

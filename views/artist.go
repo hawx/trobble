@@ -23,14 +23,14 @@ const artist = `<!DOCTYPE html>
 
     <section>
       <h2>Top Albums</h2>
-      <ul>
+      <table>
         {{ range .Albums }}
-        <li>
-          <span class="album">{{ .Album }}</span>
-          <span class="count">{{ .Count }} plays</span>
-        </li>
+        <tr>
+          <td><span class="album">{{ .Album }}</span></td>
+          <td><span class="count">{{ .Count }} plays</span></td>
+        </tr>
         {{ end }}
-      </ul>
+      </table>
     </section>
 
     <section>
