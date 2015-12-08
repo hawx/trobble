@@ -22,7 +22,7 @@ type DatedTracks struct {
 type playedCtx struct {
 	Title      string
 	TotalPlays int
-	NowPlaying *data.Track
+	NowPlaying *data.Playing
 
 	Tracks   []DatedTracks
 	MoreTime string

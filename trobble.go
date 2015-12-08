@@ -72,5 +72,5 @@ func main() {
 	auth := handlers.NewAuth(*username, *apiKey, *secret)
 	route.Handle("/scrobble/*any", handlers.Scrobble(auth, db))
 
-	serve.Serve(*port, *socket, route.Default)
+	serve.Serve(*port, *socket, serve.Recover(route.Default))
 }

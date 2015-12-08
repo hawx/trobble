@@ -138,7 +138,9 @@ func (handler *scrobbleHandler) updateNowPlaying(w http.ResponseWriter, r *http.
 
 	log.Println("now playing:", playing)
 	if err := handler.db.NowPlaying(playing); err != nil {
-		log.Println(err) // maybe return error response???
+		log.Println(err)
+		w.WriteHeader(500)
+		return
 	}
 
 	resp := new(playingResponse)

@@ -8,12 +8,16 @@ type PlayCount struct {
 	Count int
 }
 
-func (d *Database) TotalPlays() (count int, err error) {
-	err = d.db.QueryRow("SELECT COUNT(*) FROM scrobbles").Scan(&count)
+func (d *Database) TotalPlays() (count int) {
+	err := d.db.QueryRow("SELECT COUNT(*) FROM scrobbles").Scan(&count)
+	if err != nil {
+		panic(err)
+	}
+
 	return
 }
 
-func (d *Database) ArtistPlays(name string) (plays []PlayCount, err error) {
+func (d *Database) ArtistPlays(name string) (plays []PlayCount) {
 	rows, err := d.db.Query("SELECT COUNT(Timestamp), strftime('%Y', Timestamp, 'unixepoch'), strftime('%m', Timestamp, 'unixepoch') "+
 		"FROM scrobbles "+
 		"WHERE Artist = ? "+
@@ -21,14 +25,14 @@ func (d *Database) ArtistPlays(name string) (plays []PlayCount, err error) {
 		name)
 
 	if err != nil {
-		return
+		panic(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var count, year, month int
 		if err = rows.Scan(&count, &year, &month); err != nil {
-			return
+			panic(err)
 		}
 
 		plays = append(plays, PlayCount{
@@ -38,6 +42,8 @@ func (d *Database) ArtistPlays(name string) (plays []PlayCount, err error) {
 		})
 	}
 
-	err = rows.Err()
+	if err = rows.Err(); err != nil {
+		panic(err)
+	}
 	return
 }

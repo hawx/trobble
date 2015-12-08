@@ -12,7 +12,7 @@ import (
 type artistCtx struct {
 	Title      string
 	TotalPlays int
-	NowPlaying *data.Track
+	NowPlaying *data.Playing
 
 	Name     string
 	Plays    []int

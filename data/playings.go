@@ -17,18 +17,18 @@ func (d *Database) NowPlaying(playing Playing) error {
 	return err
 }
 
-func (d *Database) GetNowPlaying() (*Playing, bool, error) {
+func (d *Database) GetNowPlaying() (*Playing, bool) {
 	row := d.db.QueryRow("SELECT Artist, AlbumArtist, Album, Track, Timestamp FROM nowplaying WHERE Id=1")
 
 	var playing Playing
 	var timestamp int64
 	if err := row.Scan(&playing.Artist, &playing.AlbumArtist, &playing.Album, &playing.Track, &timestamp); err != nil {
-		return nil, false, err
+		panic(err)
 	}
 
 	if time.Unix(timestamp, 0).After(time.Now().Add(-10 * time.Minute)) {
-		return &playing, true, nil
+		return &playing, true
 	}
 
-	return nil, false, nil
+	return nil, false
 }

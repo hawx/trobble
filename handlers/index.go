@@ -11,7 +11,7 @@ import (
 type indexCtx struct {
 	Title      string
 	TotalPlays int
-	NowPlaying *data.Track
+	NowPlaying *data.Playing
 
 	RecentlyPlayed []data.Scrobble
 
