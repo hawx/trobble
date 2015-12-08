@@ -105,7 +105,7 @@ td {
 }
 
 tr td:last-child {
-    width: 140px;
+    width: 180px;
 }
 
 .artist {

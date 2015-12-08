@@ -18,6 +18,7 @@ type artistCtx struct {
 	Plays    []int
 	MaxPlays int
 	Tracks   []data.Track
+	Albums   []data.Album
 }
 
 type artistHandler struct {
@@ -47,6 +48,7 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx.Name = name
 	ctx.Tracks = h.db.ArtistTopTracks(name, 50)
+	ctx.Albums = h.db.ArtistTopAlbums(name, 4)
 
 	if len(ctx.Tracks) == 0 {
 		http.NotFound(w, r)

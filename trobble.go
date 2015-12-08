@@ -63,6 +63,7 @@ func main() {
 	route.Handle("/feed", handlers.Feed(db, *title, *url))
 	route.Handle("/played", handlers.Played(db, *title))
 	route.Handle("/artist/:name", handlers.Artist(db, *title))
+
 	route.HandleFunc("/styles.css", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/css")
 		fmt.Fprint(w, views.Styles)

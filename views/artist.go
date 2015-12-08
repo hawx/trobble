@@ -22,6 +22,18 @@ const artist = `<!DOCTYPE html>
     </section>
 
     <section>
+      <h2>Top Albums</h2>
+      <ul>
+        {{ range .Albums }}
+        <li>
+          <span class="album">{{ .Album }}</span>
+          <span class="count">{{ .Count }} plays</span>
+        </li>
+        {{ end }}
+      </ul>
+    </section>
+
+    <section>
       <h2>Top Tracks</h2>
       <table>
         {{ range .Tracks }}
