@@ -9,6 +9,8 @@ import (
 	"hawx.me/code/trobble/views"
 )
 
+const playsLength = 48
+
 type artistCtx struct {
 	Title      string
 	TotalPlays int
@@ -55,19 +57,25 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plays := h.db.ArtistPlays(name)
-	firstPlay, lastPlay := plays[0], plays[len(plays)-1]
-
 	calcSegment := func(play data.PlayCount) int {
 		return play.Year*12 + int(play.Month)
 	}
 
-	startPlay := calcSegment(firstPlay)
-	segments := calcSegment(lastPlay) - startPlay + 1
-	ctx.Plays = make([]int, segments)
+	plays := h.db.ArtistPlays(name)
+	lastPlay := plays[len(plays)-1]
+	lastSegment := calcSegment(lastPlay)
 
-	for _, play := range plays {
-		ctx.Plays[calcSegment(play)-startPlay] = play.Count
+	ctx.Plays = make([]int, playsLength)
+
+	for i := len(plays) - 1; i >= 0; i-- {
+		play := plays[i]
+
+		j := calcSegment(play) - 1 - lastSegment + playsLength
+		if j < 0 {
+			break
+		}
+
+		ctx.Plays[j] = play.Count
 		if play.Count > ctx.MaxPlays {
 			ctx.MaxPlays = play.Count
 		}
