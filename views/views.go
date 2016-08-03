@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var Index, Played, Artist interface {
+var Index, Played, Artist, Album interface {
 	Execute(io.Writer, interface{}) error
 }
 
@@ -21,6 +21,7 @@ func init() {
 	}).Parse(index))
 	tmpl = template.Must(tmpl.New("played").Parse(played))
 	tmpl = template.Must(tmpl.New("artist").Parse(artist))
+	tmpl = template.Must(tmpl.New("album").Parse(album))
 	tmpl = template.Must(tmpl.New("header").Parse(header))
 	tmpl = template.Must(tmpl.New("artistTab").Parse(artistTab))
 	tmpl = template.Must(tmpl.New("trackTab").Parse(trackTab))
@@ -28,6 +29,7 @@ func init() {
 	Index = &wrappedTemplate{tmpl, "index"}
 	Played = &wrappedTemplate{tmpl, "played"}
 	Artist = &wrappedTemplate{tmpl, "artist"}
+	Album = &wrappedTemplate{tmpl, "album"}
 }
 
 func datetime(t int64) string {

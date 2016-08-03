@@ -112,7 +112,7 @@ tr td:last-child {
     font-weight: bold;
 }
 
-.artist a {
+.artist a, .album a {
     color: black;
     text-decoration: none;
 }

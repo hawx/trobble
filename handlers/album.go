@@ -9,48 +9,52 @@ import (
 	"hawx.me/code/trobble/views"
 )
 
-const playsLength = 48
-
-type artistCtx struct {
+type albumCtx struct {
 	Title      string
 	TotalPlays int
 	NowPlaying *data.Playing
 
-	Name     string
+	Artist   string
+	Album    string
 	Plays    []int
 	MaxPlays int
 	Tracks   []data.Track
-	Albums   []data.Album
 }
 
-type artistHandler struct {
+type albumHandler struct {
 	db    *data.Database
 	title string
 }
 
-func Artist(db *data.Database, title string) http.Handler {
-	return &artistHandler{db, title}
+func Album(db *data.Database, title string) http.Handler {
+	return &albumHandler{db, title}
 }
 
-func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h albumHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
-	name, err := url.QueryUnescape(route.Vars(r)["artist"])
+	artist, err := url.QueryUnescape(route.Vars(r)["artist"])
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 
-	ctx := artistCtx{}
+	album, err := url.QueryUnescape(route.Vars(r)["album"])
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	ctx := albumCtx{}
 	ctx.Title = h.title
 	ctx.TotalPlays = h.db.TotalPlays()
 	if nowPlaying, ok := h.db.GetNowPlaying(); ok {
 		ctx.NowPlaying = nowPlaying
 	}
 
-	ctx.Name = name
-	ctx.Tracks = h.db.ArtistTopTracks(name, 50)
-	ctx.Albums = h.db.ArtistTopAlbums(name, 4)
+	ctx.Artist = artist
+	ctx.Album = album
+	ctx.Tracks = h.db.AlbumTracks(artist, album)
 
 	if len(ctx.Tracks) == 0 {
 		http.NotFound(w, r)
@@ -61,7 +65,7 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return play.Year*12 + int(play.Month)
 	}
 
-	plays := h.db.ArtistPlays(name)
+	plays := h.db.AlbumPlays(artist, album)
 	lastPlay := plays[len(plays)-1]
 	lastSegment := calcSegment(lastPlay)
 
@@ -81,5 +85,5 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	views.Artist.Execute(w, ctx)
+	views.Album.Execute(w, ctx)
 }
