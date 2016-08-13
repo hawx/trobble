@@ -112,13 +112,21 @@ tr td:last-child {
     font-weight: bold;
 }
 
-.artist a, .album a {
+.artist, .album, .track {
     color: black;
     text-decoration: none;
 }
 
+.artist:hover, .album:hover, .track:hover {
+    border-bottom: 1px solid #ccc;
+}
+
 .artist + .track {
     margin-left: .2rem;
+}
+
+p .artist, p .album, p .track {
+    border-bottom: 1px solid #ccc;
 }
 
 time, .count {

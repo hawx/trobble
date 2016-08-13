@@ -26,7 +26,7 @@ const artist = `<!DOCTYPE html>
       <table>
         {{ range .Albums }}
         <tr>
-          <td><span class="album"><a href="/artist/{{ $.Name | urlquery }}/{{ .Album | urlquery }}">{{ .Album }}</a></span></td>
+          <td><span class="album">{{linkAlbum $.Name .Album}}</span></td>
           <td><span class="count">{{ .Count }} plays</span></td>
         </tr>
         {{ end }}
@@ -38,7 +38,7 @@ const artist = `<!DOCTYPE html>
       <table>
         {{ range .Tracks }}
         <tr>
-          <td><span class="track">{{.Track}}</span></td>
+          <td><span class="track">{{linkTrack .Artist .Album .Track}}</span></td>
           <td><span class="count">{{.Count}} plays</span></td>
         </tr>
         {{ end }}

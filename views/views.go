@@ -7,21 +7,25 @@ import (
 	"time"
 )
 
-var Index, Played, Artist, Album interface {
+var Index, Played, Artist, Album, Track interface {
 	Execute(io.Writer, interface{}) error
 }
 
 func init() {
 	var tmpl = template.Must(template.New("index").Funcs(template.FuncMap{
-		"datetime": datetime,
-		"kitchen":  kitchen,
-		"readable": readable,
-		"pair":     pair,
-		"percent":  percent,
+		"datetime":   datetime,
+		"kitchen":    kitchen,
+		"readable":   readable,
+		"pair":       pair,
+		"percent":    percent,
+		"linkTrack":  linkTrack,
+		"linkAlbum":  linkAlbum,
+		"linkArtist": linkArtist,
 	}).Parse(index))
 	tmpl = template.Must(tmpl.New("played").Parse(played))
 	tmpl = template.Must(tmpl.New("artist").Parse(artist))
 	tmpl = template.Must(tmpl.New("album").Parse(album))
+	tmpl = template.Must(tmpl.New("track").Parse(track))
 	tmpl = template.Must(tmpl.New("header").Parse(header))
 	tmpl = template.Must(tmpl.New("artistTab").Parse(artistTab))
 	tmpl = template.Must(tmpl.New("trackTab").Parse(trackTab))
@@ -30,6 +34,28 @@ func init() {
 	Played = &wrappedTemplate{tmpl, "played"}
 	Artist = &wrappedTemplate{tmpl, "artist"}
 	Album = &wrappedTemplate{tmpl, "album"}
+	Track = &wrappedTemplate{tmpl, "track"}
+}
+
+func linkTrack(artist, album, track string) template.HTML {
+	return template.HTML(fmt.Sprintf(`<a class="track" href="/artist/%s/%s/%s">%s</a>`,
+		template.URLQueryEscaper(artist),
+		template.URLQueryEscaper(album),
+		template.URLQueryEscaper(track),
+		track))
+}
+
+func linkAlbum(artist, album string) template.HTML {
+	return template.HTML(fmt.Sprintf(`<a class="album" href="/artist/%s/%s">%s</a>`,
+		template.URLQueryEscaper(artist),
+		template.URLQueryEscaper(album),
+		album))
+}
+
+func linkArtist(artist string) template.HTML {
+	return template.HTML(fmt.Sprintf(`<a class="artist" href="/artist/%s">%s</a>`,
+		template.URLQueryEscaper(artist),
+		artist))
 }
 
 func datetime(t int64) string {

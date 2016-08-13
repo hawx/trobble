@@ -1,6 +1,6 @@
 package views
 
-const album = `<!DOCTYPE html>
+const track = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -13,24 +13,14 @@ const album = `<!DOCTYPE html>
     {{ template "header" . }}
 
     <section class="hero">
-      <h1>{{linkArtist .Artist}} / {{.Album}}</h1>
+      <h1>{{linkArtist .Artist}} / {{.Track}}</h1>
       <ul class="graph">
         {{ range .Plays }}
         <li style="height: {{ percent . $.MaxPlays }}%;"></li>
         {{ end }}
       </ul>
-    </section>
-
-    <section>
-      <h2>Tracks</h2>
-      <table>
-        {{ range .Tracks }}
-        <tr>
-          <td><span class="track">{{linkTrack .Artist .Album .Track}}</span></td>
-          <td><span class="count">{{.Count}} plays</span></td>
-        </tr>
-        {{ end }}
-      </table>
+      <p>From the album {{linkAlbum .Artist .Album}}</p>
+      <p>{{.TrackPlays}} plays</p>
     </section>
   </body>
 </html>`

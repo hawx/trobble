@@ -20,8 +20,8 @@ const played = `<!DOCTYPE html>
         {{ range .Tracks }}
         <tr>
           <td>
-            <span class="artist"><a href="/artist/{{.Artist | urlquery }}">{{.Artist}}</a></span>
-            <span class="track">{{.Track}}</span>
+            {{linkArtist .Artist}}
+            {{linkTrack .Artist .Album .Track}}
           </td>
           <td><time datetime="{{.Timestamp | datetime}}">{{.Timestamp | kitchen}}</time></td>
         </tr>

@@ -64,6 +64,7 @@ func main() {
 	route.Handle("/played", handlers.Played(db, *title))
 	route.Handle("/artist/:artist", handlers.Artist(db, *title))
 	route.Handle("/artist/:artist/:album", handlers.Album(db, *title))
+	route.Handle("/artist/:artist/:album/:track", handlers.Track(db, *title))
 
 	route.HandleFunc("/styles.css", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/css")
