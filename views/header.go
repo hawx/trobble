@@ -6,8 +6,8 @@ const header = `<header>
   {{ if .NowPlaying }}
   <div class="nowplaying">
     <span class="icon">&#x266B;</span>
-    <span class="artist"><a href="/artist/{{.NowPlaying.Artist}}">{{.NowPlaying.Artist}}</a></span>
-    <span class="track">{{.NowPlaying.Track}}</span>
+    {{linkArtist .NowPlaying.Artist}}
+    {{linkTrack .NowPlaying.Artist .NowPlaying.Album .NowPlaying.Track}}
   </div>
   {{ end }}
 </header>`
