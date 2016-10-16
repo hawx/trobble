@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net/url"
 	"time"
 )
 
@@ -39,22 +40,22 @@ func init() {
 
 func linkTrack(artist, album, track string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<a class="track" href="/artist/%s/%s/%s">%s</a>`,
-		template.URLQueryEscaper(artist),
-		template.URLQueryEscaper(album),
-		template.URLQueryEscaper(track),
+		url.QueryEscape(artist),
+		url.QueryEscape(album),
+		url.QueryEscape(track),
 		track))
 }
 
 func linkAlbum(artist, album string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<a class="album" href="/artist/%s/%s">%s</a>`,
-		template.URLQueryEscaper(artist),
-		template.URLQueryEscaper(album),
+		url.QueryEscape(artist),
+		url.QueryEscape(album),
 		album))
 }
 
 func linkArtist(artist string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<a class="artist" href="/artist/%s">%s</a>`,
-		template.URLQueryEscaper(artist),
+		url.QueryEscape(artist),
 		artist))
 }
 
