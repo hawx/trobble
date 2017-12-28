@@ -46,6 +46,9 @@ var (
 )
 
 func main() {
+	flag.Usage = func() {
+		fmt.Println(helpMessage)
+	}
 	flag.Parse()
 
 	if *help {
