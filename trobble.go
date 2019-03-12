@@ -23,7 +23,9 @@ const helpMessage = `Usage: trobble [--db] [--port|--socket]
     --secret VAL       # Secret used by connecting clients
 
     --title TITLE      # Title of page (default: 'trobble')
-    --url URL          # Url to host (default: 'http://localhost:8080/')
+    --url URL          # URL to host (default: 'http://localhost:8080/')
+    --name NAME        # Your name
+    --homepage URL     # Your homepage
 
     --db PATH          # Path to sqlite3 db (default: 'trobble.db')
     --port PORT        # Port to serve on (default: '8080')
@@ -36,8 +38,10 @@ var (
 	apiKey   = flag.String("api-key", "", "")
 	secret   = flag.String("secret", "", "")
 
-	title = flag.String("title", "trobble", "")
-	url   = flag.String("url", "http://localhost:8080/", "")
+	title    = flag.String("title", "trobble", "")
+	url      = flag.String("url", "http://localhost:8080/", "")
+	name     = flag.String("name", "", "")
+	homepage = flag.String("homepage", "", "")
 
 	dbPath = flag.String("db", "trobble.db", "")
 	port   = flag.String("port", "8080", "")
@@ -63,7 +67,7 @@ func main() {
 	defer db.Close()
 
 	route.Handle("/", handlers.Index(db, *title))
-	route.Handle("/feed", handlers.Feed(db, *title, *url))
+	route.Handle("/feed", handlers.Feed(db, *title, *url, *name, *homepage))
 	route.Handle("/played", handlers.Played(db, *title))
 	route.Handle("/artist/:artist", handlers.Artist(db, *title))
 	route.Handle("/artist/:artist/:album", handlers.Album(db, *title))
