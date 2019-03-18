@@ -46,7 +46,7 @@ const index = `<!DOCTYPE html>
             {{linkArtist .Artist}}
             {{linkTrack .Artist .Album .Track}}
           </td>
-          <td><time datetime="{{.Timestamp | datetime}}">{{.Timestamp | readable}}</time></td>
+          <td><a href="/listen/{{.Timestamp}}"><time datetime="{{.Timestamp | datetime}}">{{.Timestamp | readable}}</time></a></td>
         </tr>
         {{ end }}
       </table>

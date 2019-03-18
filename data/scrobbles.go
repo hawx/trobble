@@ -1,6 +1,8 @@
 package data
 
-import "time"
+import (
+	"time"
+)
 
 type Scrobble struct {
 	Artist, AlbumArtist, Album, Track string
@@ -83,4 +85,15 @@ func (d *Database) Played(from time.Time) (scrobbles []Scrobble) {
 		panic(err)
 	}
 	return
+}
+
+func (d *Database) Scrobble(at string) (scrobble Scrobble, ok bool) {
+	row := d.db.QueryRow("SELECT Artist, Album, AlbumArtist, Track, Timestamp FROM scrobbles WHERE Timestamp = ?",
+		at)
+
+	if err := row.Scan(&scrobble.Artist, &scrobble.Album, &scrobble.AlbumArtist, &scrobble.Track, &scrobble.Timestamp); err != nil {
+		return
+	}
+
+	return scrobble, true
 }

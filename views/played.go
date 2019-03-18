@@ -23,7 +23,7 @@ const played = `<!DOCTYPE html>
             {{linkArtist .Artist}}
             {{linkTrack .Artist .Album .Track}}
           </td>
-          <td><time datetime="{{.Timestamp | datetime}}">{{.Timestamp | kitchen}}</time></td>
+          <td><a href="/listen/{{.Timestamp}}"><time datetime="{{.Timestamp | datetime}}">{{.Timestamp | kitchen}}</time></a></td>
         </tr>
         {{ end }}
       </table>

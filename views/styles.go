@@ -129,9 +129,15 @@ p .artist, p .album, p .track {
     border-bottom: 1px solid #ccc;
 }
 
+a[href^='/listen'] {
+    color: black;
+}
 time, .count {
     float: right;
     font-style: italic;
+}
+time.unright {
+    float: inherit;
 }
 
 .hero {

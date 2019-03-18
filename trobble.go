@@ -65,6 +65,7 @@ func main() {
 	route.Handle("/", handlers.Index(db, *title))
 	route.Handle("/feed", handlers.Feed(db, *title, *url))
 	route.Handle("/played", handlers.Played(db, *title))
+	route.Handle("/listen/:timestamp", handlers.Listen(db, *title))
 	route.Handle("/artist/:artist", handlers.Artist(db, *title))
 	route.Handle("/artist/:artist/:album", handlers.Album(db, *title))
 	route.Handle("/artist/:artist/:album/:track", handlers.Track(db, *title))
