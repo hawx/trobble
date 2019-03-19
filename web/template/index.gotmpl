@@ -1,41 +1,14 @@
-package views
-
-const artistTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
-  <table>
-    {{ range .Data }}
-    <tr>
-      <td>{{linkArtist .Artist}}</td>
-      <td><span class="count">{{.Count}} plays</span></td>
-    <tr/>
-    {{ end }}
-  </table>
-</li>`
-
-const trackTab = `<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
-  <table>
-    {{ range .Data }}
-    <tr>
-      <td>
-        {{linkArtist .Artist}}
-        {{linkTrack .Artist .Album .Track}}
-      </td>
-      <td><span class="count">{{.Count}} plays</span></td>
-    </tr>
-    {{ end }}
-  </table>
-</li>`
-
-const index = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{{.Title}}</title>
     <link rel="alternate" type="application/rss+xml" href="/feed" />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/public/styles.css" />
   </head>
   <body>
-    {{ template "header" . }}
+    {{ template "header.gotmpl" . }}
 
     <section class="recently-played">
       <h2>Recently played</h2>
@@ -63,10 +36,10 @@ const index = `<!DOCTYPE html>
         <h3 data-id="tab-artists-week">Week</h3>
       </nav>
       <ul class="tabs-content">
-        {{ template "artistTab" pair "tab-artists-overall" false .TopArtists.Overall }}
-        {{ template "artistTab" pair "tab-artists-year"    false .TopArtists.Year    }}
-        {{ template "artistTab" pair "tab-artists-month"   true  .TopArtists.Month   }}
-        {{ template "artistTab" pair "tab-artists-week"    false .TopArtists.Week    }}
+        {{ template "artist-tab.gotmpl" pair "tab-artists-overall" false .TopArtists.Overall }}
+        {{ template "artist-tab.gotmpl" pair "tab-artists-year"    false .TopArtists.Year    }}
+        {{ template "artist-tab.gotmpl" pair "tab-artists-month"   true  .TopArtists.Month   }}
+        {{ template "artist-tab.gotmpl" pair "tab-artists-week"    false .TopArtists.Week    }}
       </ul>
     </section>
 
@@ -80,10 +53,10 @@ const index = `<!DOCTYPE html>
         <h3 data-id="tab-tracks-week">Week</h3>
       </nav>
       <ul class="tabs-content">
-        {{ template "trackTab" pair "tab-tracks-overall" false .TopTracks.Overall }}
-        {{ template "trackTab" pair "tab-tracks-year"    false .TopTracks.Year    }}
-        {{ template "trackTab" pair "tab-tracks-month"   true  .TopTracks.Month   }}
-        {{ template "trackTab" pair "tab-tracks-week"    false .TopTracks.Week    }}
+        {{ template "track-tab.gotmpl" pair "tab-tracks-overall" false .TopTracks.Overall }}
+        {{ template "track-tab.gotmpl" pair "tab-tracks-year"    false .TopTracks.Year    }}
+        {{ template "track-tab.gotmpl" pair "tab-tracks-month"   true  .TopTracks.Month   }}
+        {{ template "track-tab.gotmpl" pair "tab-tracks-week"    false .TopTracks.Week    }}
       </ul>
     </section>
 
@@ -119,4 +92,4 @@ const index = `<!DOCTYPE html>
       activateTabsIn(document.querySelector(".top-tracks"));
     </script>
   </body>
-</html>`
+</html>

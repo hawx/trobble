@@ -1,19 +1,17 @@
-package views
-
-const artist = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{{.Title}}</title>
     <link rel="alternate" type="application/rss+xml" href="/feed" />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/public/styles.css" />
   </head>
   <body>
-    {{ template "header" . }}
+    {{ template "header.gotmpl" . }}
 
     <section class="hero">
-      <h1>{{ .Name }}</h1>
+      <h1>{{linkArtist .Artist}} / {{.Album}}</h1>
       <ul class="graph">
         {{ range .Plays }}
         <li style="height: {{ percent . $.MaxPlays }}%;"></li>
@@ -22,19 +20,7 @@ const artist = `<!DOCTYPE html>
     </section>
 
     <section>
-      <h2>Top Albums</h2>
-      <table>
-        {{ range .Albums }}
-        <tr>
-          <td><span class="album">{{linkAlbum $.Name .Album}}</span></td>
-          <td><span class="count">{{ .Count }} plays</span></td>
-        </tr>
-        {{ end }}
-      </table>
-    </section>
-
-    <section>
-      <h2>Top Tracks</h2>
+      <h2>Tracks</h2>
       <table>
         {{ range .Tracks }}
         <tr>
@@ -45,4 +31,4 @@ const artist = `<!DOCTYPE html>
       </table>
     </section>
   </body>
-</html>`
+</html>

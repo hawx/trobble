@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"html/template"
 	"net/http"
 	"time"
 
 	"hawx.me/code/trobble/data"
-	"hawx.me/code/trobble/views"
 )
 
 type Date struct {
@@ -29,12 +29,13 @@ type playedCtx struct {
 }
 
 type playedHandler struct {
-	db    *data.Database
-	title string
+	db        *data.Database
+	title     string
+	templates *template.Template
 }
 
-func Played(db *data.Database, title string) http.Handler {
-	return &playedHandler{db, title}
+func Played(db *data.Database, title string, templates *template.Template) http.Handler {
+	return &playedHandler{db, title, templates}
 }
 
 func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -85,5 +86,5 @@ func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx.MoreTime = time.Unix(tracks[len(tracks)-1].Timestamp, 0).Format(time.RFC3339)
 
-	views.Played.Execute(w, ctx)
+	h.templates.ExecuteTemplate(w, "played.gotmpl", ctx)
 }

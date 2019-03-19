@@ -1,0 +1,10 @@
+<li id="{{.Name}}" {{ if .Hide }}class="hide"{{ end }}>
+  <table>
+    {{ range .Data }}
+    <tr>
+      <td>{{linkArtist .Artist}}</td>
+      <td><span class="count">{{.Count}} plays</span></td>
+    <tr/>
+    {{ end }}
+  </table>
+</li>

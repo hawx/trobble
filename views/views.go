@@ -8,12 +8,8 @@ import (
 	"time"
 )
 
-var Index, Played, Artist, Album, Track, Listen interface {
-	Execute(io.Writer, interface{}) error
-}
-
-func init() {
-	var tmpl = template.Must(template.New("index").Funcs(template.FuncMap{
+func Parse(glob string) (*template.Template, error) {
+	return template.New("index").Funcs(template.FuncMap{
 		"datetime":   datetime,
 		"kitchen":    kitchen,
 		"readable":   readable,
@@ -22,22 +18,7 @@ func init() {
 		"linkTrack":  linkTrack,
 		"linkAlbum":  linkAlbum,
 		"linkArtist": linkArtist,
-	}).Parse(index))
-	tmpl = template.Must(tmpl.New("played").Parse(played))
-	tmpl = template.Must(tmpl.New("artist").Parse(artist))
-	tmpl = template.Must(tmpl.New("album").Parse(album))
-	tmpl = template.Must(tmpl.New("track").Parse(track))
-	tmpl = template.Must(tmpl.New("listen").Parse(listen))
-	tmpl = template.Must(tmpl.New("header").Parse(header))
-	tmpl = template.Must(tmpl.New("artistTab").Parse(artistTab))
-	tmpl = template.Must(tmpl.New("trackTab").Parse(trackTab))
-
-	Index = &wrappedTemplate{tmpl, "index"}
-	Played = &wrappedTemplate{tmpl, "played"}
-	Artist = &wrappedTemplate{tmpl, "artist"}
-	Album = &wrappedTemplate{tmpl, "album"}
-	Track = &wrappedTemplate{tmpl, "track"}
-	Listen = &wrappedTemplate{tmpl, "listen"}
+	}).ParseGlob(glob)
 }
 
 func linkTrack(artist, album, track string) template.HTML {

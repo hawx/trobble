@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"html/template"
 	"net/http"
 	"net/url"
 
 	"hawx.me/code/route"
 	"hawx.me/code/trobble/data"
-	"hawx.me/code/trobble/views"
 )
 
 const playsLength = 48
@@ -24,12 +24,13 @@ type artistCtx struct {
 }
 
 type artistHandler struct {
-	db    *data.Database
-	title string
+	db        *data.Database
+	title     string
+	templates *template.Template
 }
 
-func Artist(db *data.Database, title string) http.Handler {
-	return &artistHandler{db, title}
+func Artist(db *data.Database, title string, templates *template.Template) http.Handler {
+	return &artistHandler{db, title, templates}
 }
 
 func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -81,5 +82,5 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	views.Artist.Execute(w, ctx)
+	h.templates.ExecuteTemplate(w, "artist.gotmpl", ctx)
 }

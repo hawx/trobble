@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"html/template"
+	"log"
 	"net/http"
 	"time"
 
 	"hawx.me/code/trobble/data"
-	"hawx.me/code/trobble/views"
 )
 
 type indexCtx struct {
@@ -25,12 +26,13 @@ type indexCtx struct {
 }
 
 type indexHandler struct {
-	db    *data.Database
-	title string
+	db        *data.Database
+	title     string
+	templates *template.Template
 }
 
-func Index(db *data.Database, title string) http.Handler {
-	return &indexHandler{db, title}
+func Index(db *data.Database, title string, templates *template.Template) http.Handler {
+	return &indexHandler{db, title, templates}
 }
 
 // Simplified constants
@@ -62,5 +64,7 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx.TopTracks.Month = h.db.TopTracksAfter(10, -Month)
 	ctx.TopTracks.Week = h.db.TopTracksAfter(10, -Week)
 
-	views.Index.Execute(w, ctx)
+	if err := h.templates.ExecuteTemplate(w, "index.gotmpl", ctx); err != nil {
+		log.Println(err)
+	}
 }

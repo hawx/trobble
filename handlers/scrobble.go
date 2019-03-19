@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 	"hawx.me/code/trobble/data"
 )
 
@@ -43,7 +43,7 @@ type Auth struct {
 }
 
 func NewAuth(username, apiKey, secret string) Auth {
-	return Auth{username, apiKey, secret, strings.Replace(uuid.New(), "-", "", -1)}
+	return Auth{username, apiKey, secret, strings.Replace(uuid.New().String(), "-", "", -1)}
 }
 
 func (auth Auth) calcSignature(r *http.Request) string {

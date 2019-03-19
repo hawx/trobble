@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"html/template"
 	"net/http"
 	"net/url"
 
 	"hawx.me/code/route"
 	"hawx.me/code/trobble/data"
-	"hawx.me/code/trobble/views"
 )
 
 type trackCtx struct {
@@ -23,12 +23,13 @@ type trackCtx struct {
 }
 
 type trackHandler struct {
-	db    *data.Database
-	title string
+	db        *data.Database
+	title     string
+	templates *template.Template
 }
 
-func Track(db *data.Database, title string) http.Handler {
-	return &trackHandler{db, title}
+func Track(db *data.Database, title string, templates *template.Template) http.Handler {
+	return &trackHandler{db, title, templates}
 }
 
 func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -97,5 +98,5 @@ func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	views.Track.Execute(w, ctx)
+	h.templates.ExecuteTemplate(w, "track.gotmpl", ctx)
 }

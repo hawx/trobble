@@ -1,6 +1,4 @@
-package views
-
-const header = `<header>
+<header>
   <h1><a href="/">{{.Title}}</a></h1>
   <div>{{.TotalPlays}} plays</div>
   {{ if .NowPlaying }}
@@ -10,4 +8,4 @@ const header = `<header>
     {{linkTrack .NowPlaying.Artist .NowPlaying.Album .NowPlaying.Track}}
   </div>
   {{ end }}
-</header>`
+</header>

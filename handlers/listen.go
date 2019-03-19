@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"html/template"
 	"net/http"
 	"net/url"
 
 	"hawx.me/code/route"
 	"hawx.me/code/trobble/data"
-	"hawx.me/code/trobble/views"
 )
 
 type listenCtx struct {
@@ -21,12 +21,13 @@ type listenCtx struct {
 }
 
 type listenHandler struct {
-	db    *data.Database
-	title string
+	db        *data.Database
+	title     string
+	templates *template.Template
 }
 
-func Listen(db *data.Database, title string) http.Handler {
-	return &listenHandler{db, title}
+func Listen(db *data.Database, title string, templates *template.Template) http.Handler {
+	return &listenHandler{db, title, templates}
 }
 
 func (h listenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -58,5 +59,5 @@ func (h listenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx.Track = foundTrack.Track
 	ctx.Timestamp = foundTrack.Timestamp
 
-	views.Listen.Execute(w, ctx)
+	h.templates.ExecuteTemplate(w, "listen.gotmpl", ctx)
 }
