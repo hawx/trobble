@@ -17,7 +17,14 @@ func Feed(db *data.Database, title, url string) http.Handler {
 			Created: time.Now(),
 		}
 
-		for _, played := range db.RecentlyPlayed() {
+		recent, err := db.RecentlyPlayed()
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		for _, played := range recent {
 			feed.Items = append(feed.Items, &feeds.Item{
 				Title:       played.Track,
 				Description: played.Artist,
@@ -28,10 +35,9 @@ func Feed(db *data.Database, title, url string) http.Handler {
 
 		w.Header().Add("Content-Type", "application/rss+xml")
 
-		err := feed.WriteRss(w)
-		if err != nil {
+		if err := feed.WriteRss(w); err != nil {
 			log.Println(err)
-			w.WriteHeader(500)
+			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
 	})

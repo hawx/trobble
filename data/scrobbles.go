@@ -43,47 +43,43 @@ func (d *Database) AddMultiple(scrobbles []Scrobble) error {
 	return tx.Commit()
 }
 
-func (d *Database) RecentlyPlayed() (scrobbles []Scrobble) {
+func (d *Database) RecentlyPlayed() (scrobbles []Scrobble, err error) {
 	rows, err := d.db.Query("SELECT Artist, Album, AlbumArtist, Track, Timestamp FROM scrobbles ORDER BY Timestamp DESC LIMIT 10")
 	if err != nil {
-		panic(err)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var scrobble Scrobble
 		if err = rows.Scan(&scrobble.Artist, &scrobble.Album, &scrobble.AlbumArtist, &scrobble.Track, &scrobble.Timestamp); err != nil {
-			panic(err)
+			return
 		}
 		scrobbles = append(scrobbles, scrobble)
 	}
 
-	if err = rows.Err(); err != nil {
-		panic(err)
-	}
+	err = rows.Err()
 	return
 }
 
-func (d *Database) Played(from time.Time) (scrobbles []Scrobble) {
+func (d *Database) Played(from time.Time) (scrobbles []Scrobble, err error) {
 	rows, err := d.db.Query("SELECT Artist, Album, AlbumArtist, Track, Timestamp FROM scrobbles WHERE Timestamp < ? ORDER BY Timestamp DESC LIMIT 100",
-		from)
+		from.Unix())
 
 	if err != nil {
-		panic(err)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var scrobble Scrobble
 		if err = rows.Scan(&scrobble.Artist, &scrobble.Album, &scrobble.AlbumArtist, &scrobble.Track, &scrobble.Timestamp); err != nil {
-			panic(err)
+			return
 		}
 		scrobbles = append(scrobbles, scrobble)
 	}
 
-	if err = rows.Err(); err != nil {
-		panic(err)
-	}
+	err = rows.Err()
 	return
 }
 

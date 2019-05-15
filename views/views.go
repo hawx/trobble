@@ -3,7 +3,6 @@ package views
 import (
 	"fmt"
 	"html/template"
-	"io"
 	"net/url"
 	"time"
 )
@@ -85,13 +84,4 @@ type Pair struct {
 
 func pair(name string, show bool, data interface{}) *Pair {
 	return &Pair{name, !show, data}
-}
-
-type wrappedTemplate struct {
-	t *template.Template
-	n string
-}
-
-func (w *wrappedTemplate) Execute(wr io.Writer, data interface{}) error {
-	return w.t.ExecuteTemplate(wr, w.n, data)
 }

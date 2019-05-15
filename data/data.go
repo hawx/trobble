@@ -1,9 +1,19 @@
 package data
 
 import (
+	"time"
+
 	_ "github.com/mattn/go-sqlite3"
 
 	"database/sql"
+)
+
+// Simplified constants
+const (
+	Week    = 7 * 24 * time.Hour
+	Month   = 4 * Week
+	Year    = 52 * Week
+	Forever = 100 * Year
 )
 
 type Database struct {

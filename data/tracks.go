@@ -5,6 +5,39 @@ import (
 	"time"
 )
 
+type TrackRankings struct {
+	Overall, Year, Month, Week []Track
+}
+
+func (d *Database) TopTracks(limit int) (rankings TrackRankings, err error) {
+	overall, err := d.topTracksAfter(limit, -Forever)
+	if err != nil {
+		return
+	}
+
+	year, err := d.topTracksAfter(limit, -Year)
+	if err != nil {
+		return
+	}
+
+	month, err := d.topTracksAfter(limit, -Month)
+	if err != nil {
+		return
+	}
+
+	week, err := d.topTracksAfter(limit, -Week)
+	if err != nil {
+		return
+	}
+
+	return TrackRankings{
+		Overall: overall,
+		Year:    year,
+		Month:   month,
+		Week:    week,
+	}, nil
+}
+
 type Track struct {
 	Artist string
 	Album  string
@@ -12,83 +45,73 @@ type Track struct {
 	Count  int
 }
 
-func (d *Database) TopTracks(limit int) []Track {
-	return d.TopTracksAfter(limit, -100*365*24*time.Hour)
-}
-
-func (d *Database) TopTracksAfter(limit int, after time.Duration) (tracks []Track) {
+func (d *Database) topTracksAfter(limit int, after time.Duration) (tracks []Track, err error) {
 	rows, err := d.db.Query("SELECT Artist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Timestamp > ? GROUP BY Artist, Track ORDER BY C DESC LIMIT ?",
 		time.Now().Add(after).Unix(),
 		limit)
 
 	if err != nil {
-		panic(err)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var track Track
 		if err = rows.Scan(&track.Artist, &track.Album, &track.Track, &track.Count); err != nil {
-			panic(err)
+			return
 		}
 		tracks = append(tracks, track)
 	}
 
-	if err = rows.Err(); err != nil {
-		panic(err)
-	}
+	err = rows.Err()
 	return
 }
 
-func (d *Database) ArtistTopTracks(name string, limit int) (tracks []Track) {
+func (d *Database) ArtistTopTracks(name string, limit int) (tracks []Track, err error) {
 	rows, err := d.db.Query("SELECT Artist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Artist = ? GROUP BY Artist, Track ORDER BY C DESC LIMIT ?",
 		name,
 		limit)
 
 	if err != nil {
-		panic(err)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var track Track
 		if err = rows.Scan(&track.Artist, &track.Album, &track.Track, &track.Count); err != nil {
-			panic(err)
+			return
 		}
 		tracks = append(tracks, track)
 	}
 
-	if err = rows.Err(); err != nil {
-		panic(err)
-	}
+	err = rows.Err()
 	return
 }
 
-func (d *Database) AlbumTracks(artist, album string) (tracks []Track) {
+func (d *Database) AlbumTracks(artist, album string) (tracks []Track, err error) {
 	rows, err := d.db.Query("SELECT Artist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Artist = ? AND Album = ? GROUP BY Artist, Track ORDER BY C DESC",
 		artist,
 		album)
 
 	if err != nil {
-		panic(err)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var track Track
 		if err = rows.Scan(&track.Artist, &track.Album, &track.Track, &track.Count); err != nil {
-			panic(err)
+			return
 		}
 		tracks = append(tracks, track)
 	}
 
-	if err = rows.Err(); err != nil {
-		panic(err)
-	}
+	err = rows.Err()
 	return
 }
 
-func (d *Database) GetTrack(artist, album, track string) *Track {
+func (d *Database) GetTrack(artist, album, track string) (*Track, error) {
 	var result Track
 
 	err := d.db.QueryRow("SELECT Artist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Artist = ? AND Album = ? AND Track = ? GROUP BY Artist, Track ORDER BY C DESC",
@@ -98,10 +121,10 @@ func (d *Database) GetTrack(artist, album, track string) *Track {
 
 	switch {
 	case err == sql.ErrNoRows:
-		return nil
+		return nil, nil
 	case err != nil:
-		panic(err)
+		return nil, err
 	}
 
-	return &result
+	return &result, nil
 }

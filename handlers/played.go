@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"time"
 
@@ -58,10 +59,17 @@ func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx.Tracks = []DatedTracks{}
 
-	tracks := h.db.Played(fromTime)
+	tracks, err := h.db.Played(fromTime)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 	var ltracks []data.Scrobble
 
-	year, month, day := time.Unix(tracks[0].Timestamp, 0).Date()
+	first, last := tracks[0], tracks[len(tracks)-1]
+
+	year, month, day := time.Unix(first.Timestamp, 0).Date()
 	ldate := Date{year, month, day}
 
 	for _, track := range tracks {
@@ -84,7 +92,9 @@ func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx.Tracks = append(ctx.Tracks, DatedTracks{ldate, ltracks})
 	}
 
-	ctx.MoreTime = time.Unix(tracks[len(tracks)-1].Timestamp, 0).Format(time.RFC3339)
+	ctx.MoreTime = time.Unix(last.Timestamp, 0).Format(time.RFC3339)
 
-	h.templates.ExecuteTemplate(w, "played.gotmpl", ctx)
+	if err := h.templates.ExecuteTemplate(w, "played.gotmpl", ctx); err != nil {
+		log.Println("handlers/played:", err)
+	}
 }

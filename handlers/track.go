@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -55,7 +56,13 @@ func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	foundTrack := h.db.GetTrack(artist, album, track)
+	foundTrack, err := h.db.GetTrack(artist, album, track)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
 	if foundTrack == nil {
 		http.NotFound(w, r)
 		return

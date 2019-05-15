@@ -1,6 +1,9 @@
 package data
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 type Playing struct {
 	Artist, AlbumArtist, Album, Track string
@@ -23,7 +26,8 @@ func (d *Database) GetNowPlaying() (*Playing, bool) {
 	var playing Playing
 	var timestamp int64
 	if err := row.Scan(&playing.Artist, &playing.AlbumArtist, &playing.Album, &playing.Track, &timestamp); err != nil {
-		panic(err)
+		log.Println(err)
+		return nil, false
 	}
 
 	if time.Unix(timestamp, 0).After(time.Now().Add(-10 * time.Minute)) {

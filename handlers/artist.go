@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -50,8 +51,22 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx.Name = name
-	ctx.Tracks = h.db.ArtistTopTracks(name, 50)
-	ctx.Albums = h.db.ArtistTopAlbums(name, 4)
+
+	topTracks, err := h.db.ArtistTopTracks(name, 50)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	ctx.Tracks = topTracks
+
+	albums, err := h.db.ArtistTopAlbums(name, 4)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	ctx.Albums = albums
 
 	if len(ctx.Tracks) == 0 {
 		http.NotFound(w, r)

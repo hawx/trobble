@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -46,9 +47,9 @@ func NewAuth(username, apiKey, secret string) Auth {
 	return Auth{username, apiKey, secret, strings.Replace(uuid.New().String(), "-", "", -1)}
 }
 
-func (auth Auth) calcSignature(r *http.Request) string {
-	keys := make([]string, 0, len(r.Form))
-	for k := range r.Form {
+func (auth Auth) calcSignature(form url.Values) string {
+	keys := make([]string, 0, len(form))
+	for k := range form {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -56,7 +57,7 @@ func (auth Auth) calcSignature(r *http.Request) string {
 	sigStr := ""
 	for _, k := range keys {
 		if k != "api_sig" {
-			sigStr += k + r.FormValue(k)
+			sigStr += k + form.Get(k)
 		}
 	}
 	sigStr += auth.secret
@@ -67,7 +68,8 @@ func (auth Auth) calcSignature(r *http.Request) string {
 }
 
 func (auth Auth) checkApiDetails(r *http.Request) bool {
-	return r.FormValue("api_key") == auth.apiKey && r.FormValue("api_sig") == auth.calcSignature(r)
+	log.Println(auth.calcSignature(r.Form))
+	return r.FormValue("api_key") == auth.apiKey && r.FormValue("api_sig") == auth.calcSignature(r.Form)
 }
 
 func (auth Auth) checkUsername(r *http.Request) bool {
@@ -78,13 +80,18 @@ func (auth Auth) checkSession(r *http.Request) bool {
 	return auth.checkApiDetails(r) && r.FormValue("sk") == auth.sessionId
 }
 
+type scrobbleDB interface {
+	NowPlaying(data.Playing) error
+	Add(data.Scrobble) error
+}
+
 type scrobbleHandler struct {
-	db         *data.Database
+	db         scrobbleDB
 	auth       Auth
 	responders map[string]http.Handler
 }
 
-func Scrobble(auth Auth, db *data.Database) http.Handler {
+func Scrobble(auth Auth, db scrobbleDB) http.Handler {
 	handler := new(scrobbleHandler)
 	handler.db = db
 	handler.auth = auth
@@ -191,6 +198,8 @@ func (handler *scrobbleHandler) scrobble(w http.ResponseWriter, r *http.Request)
 	log.Println("scrobbled:", scrobble)
 	if err := handler.db.Add(scrobble); err != nil {
 		log.Println(err) // maybe return error response???
+		w.WriteHeader(500)
+		return
 	}
 
 	resp := new(scrobbleResponse)

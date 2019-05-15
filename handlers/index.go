@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"time"
 
 	"hawx.me/code/trobble/data"
 )
@@ -35,13 +34,6 @@ func Index(db *data.Database, title string, templates *template.Template) http.H
 	return &indexHandler{db, title, templates}
 }
 
-// Simplified constants
-const (
-	Week  = 7 * 24 * time.Hour
-	Month = 4 * Week
-	Year  = 52 * Week
-)
-
 func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
@@ -52,17 +44,37 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx.NowPlaying = nowPlaying
 	}
 
-	ctx.RecentlyPlayed = h.db.RecentlyPlayed()
+	recent, err := h.db.RecentlyPlayed()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	ctx.RecentlyPlayed = recent
 
-	ctx.TopArtists.Overall = h.db.TopArtists(10)
-	ctx.TopArtists.Year = h.db.TopArtistsAfter(10, -Year)
-	ctx.TopArtists.Month = h.db.TopArtistsAfter(10, -Month)
-	ctx.TopArtists.Week = h.db.TopArtistsAfter(10, -Week)
+	topArtists, err := h.db.TopArtists(10)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 
-	ctx.TopTracks.Overall = h.db.TopTracks(10)
-	ctx.TopTracks.Year = h.db.TopTracksAfter(10, -Year)
-	ctx.TopTracks.Month = h.db.TopTracksAfter(10, -Month)
-	ctx.TopTracks.Week = h.db.TopTracksAfter(10, -Week)
+	ctx.TopArtists.Overall = topArtists.Overall
+	ctx.TopArtists.Year = topArtists.Year
+	ctx.TopArtists.Month = topArtists.Month
+	ctx.TopArtists.Week = topArtists.Week
+
+	topTracks, err := h.db.TopTracks(10)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	ctx.TopTracks.Overall = topTracks.Overall
+	ctx.TopTracks.Year = topTracks.Year
+	ctx.TopTracks.Month = topTracks.Month
+	ctx.TopTracks.Week = topTracks.Week
 
 	if err := h.templates.ExecuteTemplate(w, "index.gotmpl", ctx); err != nil {
 		log.Println(err)
