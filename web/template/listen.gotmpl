@@ -11,8 +11,8 @@
     {{ template "header.gotmpl" . }}
 
     <section>
-      <h1>{{linkArtist .Artist}} / {{.Track}}</h1>
-      <p>From the album {{linkAlbum .Artist .Album}}</p>
+      <h1>{{linkArtist .Artist}} / {{linkTrack .AlbumArtist .Album .Track}}</h1>
+      <p>From the album {{linkAlbum .AlbumArtist .Album}}</p>
       <p>played <time class="unright" datetime="{{ datetime .Timestamp }}">{{ readable .Timestamp }}</time></p>
     </section>
   </body>

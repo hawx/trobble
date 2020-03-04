@@ -15,12 +15,13 @@ type trackCtx struct {
 	TotalPlays int
 	NowPlaying *data.Playing
 
-	Artist     string
-	Album      string
-	Track      string
-	Plays      []int
-	MaxPlays   int
-	TrackPlays int
+	Artist      string
+	AlbumArtist string
+	Album       string
+	Track       string
+	Plays       []int
+	MaxPlays    int
+	TrackPlays  int
 }
 
 type trackHandler struct {
@@ -38,7 +39,7 @@ func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	vars := route.Vars(r)
 
-	artist, err := url.QueryUnescape(vars["artist"])
+	albumArtist, err := url.QueryUnescape(vars["albumArtist"])
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -56,7 +57,7 @@ func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	foundTrack, err := h.db.GetTrack(artist, album, track)
+	foundTrack, err := h.db.GetTrack(albumArtist, album, track)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "", http.StatusInternalServerError)
@@ -75,9 +76,9 @@ func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx.NowPlaying = nowPlaying
 	}
 
-	ctx.Artist = artist
-	ctx.Album = album
-
+	ctx.Artist = foundTrack.Artist
+	ctx.Album = foundTrack.Album
+	ctx.AlbumArtist = foundTrack.AlbumArtist
 	ctx.Track = foundTrack.Track
 	ctx.TrackPlays = foundTrack.Count
 
@@ -85,7 +86,7 @@ func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return play.Year*12 + int(play.Month)
 	}
 
-	plays := h.db.TrackPlays(artist, album, track)
+	plays := h.db.TrackPlays(albumArtist, album, track)
 	lastPlay := plays[len(plays)-1]
 	lastSegment := calcSegment(lastPlay)
 
@@ -105,5 +106,7 @@ func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.templates.ExecuteTemplate(w, "track.gotmpl", ctx)
+	if err := h.templates.ExecuteTemplate(w, "track.gotmpl", ctx); err != nil {
+		log.Println(err)
+	}
 }

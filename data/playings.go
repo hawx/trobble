@@ -10,6 +10,10 @@ type Playing struct {
 }
 
 func (d *Database) NowPlaying(playing Playing) error {
+	if playing.AlbumArtist == "" {
+		playing.AlbumArtist = playing.Artist
+	}
+
 	_, err := d.db.Exec("UPDATE nowplaying SET Artist=?, AlbumArtist=?, Album=?, Track=?, Timestamp=? WHERE Id=1",
 		playing.Artist,
 		playing.AlbumArtist,

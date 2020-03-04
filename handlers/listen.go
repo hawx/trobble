@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -14,10 +15,11 @@ type listenCtx struct {
 	TotalPlays int
 	NowPlaying *data.Playing
 
-	Artist    string
-	Album     string
-	Track     string
-	Timestamp int64
+	Artist      string
+	AlbumArtist string
+	Album       string
+	Track       string
+	Timestamp   int64
 }
 
 type listenHandler struct {
@@ -55,9 +57,12 @@ func (h listenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx.Artist = foundTrack.Artist
+	ctx.AlbumArtist = foundTrack.AlbumArtist
 	ctx.Album = foundTrack.Album
 	ctx.Track = foundTrack.Track
 	ctx.Timestamp = foundTrack.Timestamp
 
-	h.templates.ExecuteTemplate(w, "listen.gotmpl", ctx)
+	if err := h.templates.ExecuteTemplate(w, "listen.gotmpl", ctx); err != nil {
+		log.Println(err)
+	}
 }

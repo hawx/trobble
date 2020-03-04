@@ -1,13 +1,14 @@
 package data
 
 type Album struct {
-	Artist string
-	Album  string
-	Count  int
+	AlbumArtist string
+	Album       string
+	Count       int
 }
 
 func (d *Database) ArtistTopAlbums(name string, limit int) (albums []Album, err error) {
-	rows, err := d.db.Query("SELECT Artist, Album, COUNT(*) AS C FROM scrobbles WHERE Artist = ? GROUP BY Artist, Album ORDER BY C DESC LIMIT ?",
+	rows, err := d.db.Query("SELECT AlbumArtist, Album, COUNT(*) AS C FROM scrobbles WHERE (Artist = ? OR AlbumArtist = ?) GROUP BY AlbumArtist, Album ORDER BY C DESC LIMIT ?",
+		name,
 		name,
 		limit)
 
@@ -18,7 +19,7 @@ func (d *Database) ArtistTopAlbums(name string, limit int) (albums []Album, err 
 
 	for rows.Next() {
 		var album Album
-		if err = rows.Scan(&album.Artist, &album.Album, &album.Count); err != nil {
+		if err = rows.Scan(&album.AlbumArtist, &album.Album, &album.Count); err != nil {
 			return
 		}
 

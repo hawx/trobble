@@ -24,7 +24,7 @@
       <table>
         {{ range .Tracks }}
         <tr>
-          <td><span class="track">{{linkTrack .Artist .Album .Track}}</span></td>
+          <td>{{ if $.ShowArtists }}<span class="artist">{{ linkArtist .Artist }}</span> {{ end }}<span class="track">{{linkTrack .AlbumArtist .Album .Track}}</span></td>
           <td><span class="count">{{.Count}} plays</span></td>
         </tr>
         {{ end }}

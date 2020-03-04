@@ -20,8 +20,9 @@ func (d *Database) TotalPlays() (count int) {
 func (d *Database) ArtistPlays(name string) (plays []PlayCount) {
 	rows, err := d.db.Query("SELECT COUNT(Timestamp), strftime('%Y', Timestamp, 'unixepoch'), strftime('%m', Timestamp, 'unixepoch') "+
 		"FROM scrobbles "+
-		"WHERE Artist = ? "+
+		"WHERE (Artist = ? OR AlbumArtist = ?) "+
 		"GROUP BY strftime('%Y-%m', Timestamp, 'unixepoch')",
+		name,
 		name)
 
 	if err != nil {
@@ -48,13 +49,13 @@ func (d *Database) ArtistPlays(name string) (plays []PlayCount) {
 	return
 }
 
-func (d *Database) AlbumPlays(artist, album string) (plays []PlayCount) {
+func (d *Database) AlbumPlays(albumArtist, album string) (plays []PlayCount) {
 	rows, err := d.db.Query("SELECT COUNT(Timestamp), strftime('%Y', Timestamp, 'unixepoch'), strftime('%m', Timestamp, 'unixepoch') "+
 		"FROM scrobbles "+
-		"WHERE Artist = ? "+
+		"WHERE AlbumArtist = ? "+
 		"AND Album = ? "+
 		"GROUP BY strftime('%Y-%m', Timestamp, 'unixepoch')",
-		artist,
+		albumArtist,
 		album)
 
 	if err != nil {
@@ -81,14 +82,14 @@ func (d *Database) AlbumPlays(artist, album string) (plays []PlayCount) {
 	return
 }
 
-func (d *Database) TrackPlays(artist, album, track string) (plays []PlayCount) {
+func (d *Database) TrackPlays(albumArtist, album, track string) (plays []PlayCount) {
 	rows, err := d.db.Query("SELECT COUNT(Timestamp), strftime('%Y', Timestamp, 'unixepoch'), strftime('%m', Timestamp, 'unixepoch') "+
 		"FROM scrobbles "+
-		"WHERE Artist = ? "+
+		"WHERE AlbumArtist = ? "+
 		"AND Album = ? "+
 		"AND Track = ? "+
 		"GROUP BY strftime('%Y-%m', Timestamp, 'unixepoch')",
-		artist,
+		albumArtist,
 		album,
 		track)
 

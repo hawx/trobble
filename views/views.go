@@ -20,17 +20,17 @@ func Parse(glob string) (*template.Template, error) {
 	}).ParseGlob(glob)
 }
 
-func linkTrack(artist, album, track string) template.HTML {
-	return template.HTML(fmt.Sprintf(`<a class="track" href="/artist/%s/%s/%s">%s</a>`,
-		url.QueryEscape(artist),
+func linkTrack(albumArtist, album, track string) template.HTML {
+	return template.HTML(fmt.Sprintf(`<a class="track" href="/track/%s/%s/%s">%s</a>`,
+		url.QueryEscape(albumArtist),
 		url.QueryEscape(album),
 		url.QueryEscape(track),
 		track))
 }
 
-func linkAlbum(artist, album string) template.HTML {
-	return template.HTML(fmt.Sprintf(`<a class="album" href="/artist/%s/%s">%s</a>`,
-		url.QueryEscape(artist),
+func linkAlbum(albumArtist, album string) template.HTML {
+	return template.HTML(fmt.Sprintf(`<a class="album" href="/album/%s/%s">%s</a>`,
+		url.QueryEscape(albumArtist),
 		url.QueryEscape(album),
 		album))
 }

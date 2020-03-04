@@ -10,6 +10,10 @@ type Scrobble struct {
 }
 
 func (d *Database) Add(scrobble Scrobble) error {
+	if scrobble.AlbumArtist == "" {
+		scrobble.AlbumArtist = scrobble.Artist
+	}
+
 	_, err := d.db.Exec("INSERT INTO scrobbles VALUES(?, ?, ?, ?, ?)",
 		scrobble.Artist,
 		scrobble.AlbumArtist,
@@ -27,6 +31,10 @@ func (d *Database) AddMultiple(scrobbles []Scrobble) error {
 	}
 
 	for _, scrobble := range scrobbles {
+		if scrobble.AlbumArtist == "" {
+			scrobble.AlbumArtist = scrobble.Artist
+		}
+
 		_, err := tx.Exec("INSERT OR IGNORE INTO scrobbles VALUES(?, ?, ?, ?, ?)",
 			scrobble.Artist,
 			scrobble.AlbumArtist,

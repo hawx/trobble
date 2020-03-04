@@ -68,8 +68,8 @@ func main() {
 	route.Handle("/played", handlers.Played(db, *title, templates))
 	route.Handle("/listen/:timestamp", handlers.Listen(db, *title, templates))
 	route.Handle("/artist/:artist", handlers.Artist(db, *title, templates))
-	route.Handle("/artist/:artist/:album", handlers.Album(db, *title, templates))
-	route.Handle("/artist/:artist/:album/:track", handlers.Track(db, *title, templates))
+	route.Handle("/album/:albumArtist/:album", handlers.Album(db, *title, templates))
+	route.Handle("/track/:albumArtist/:album/:track", handlers.Track(db, *title, templates))
 
 	route.Handle("/public/*path", http.StripPrefix("/public", http.FileServer(http.Dir(*webPath+"/static"))))
 

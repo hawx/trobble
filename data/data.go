@@ -50,6 +50,8 @@ func (d *Database) setup() error {
   );
 
   INSERT OR IGNORE INTO nowplaying VALUES(1, "", "", "", "", 0);
+
+  UPDATE scrobbles SET AlbumArtist = Artist WHERE AlbumArtist = '';
 `)
 
 	return err

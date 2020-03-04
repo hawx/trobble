@@ -17,7 +17,7 @@
         <tr>
           <td>
             {{linkArtist .Artist}}
-            {{linkTrack .Artist .Album .Track}}
+            {{linkTrack .AlbumArtist .Album .Track}}
           </td>
           <td><a href="/listen/{{.Timestamp}}"><time datetime="{{.Timestamp | datetime}}">{{.Timestamp | readable}}</time></a></td>
         </tr>

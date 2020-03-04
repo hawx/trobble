@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/feeds"
@@ -28,7 +29,7 @@ func Feed(db *data.Database, title, url string) http.Handler {
 			feed.Items = append(feed.Items, &feeds.Item{
 				Title:       played.Track,
 				Description: played.Artist,
-				Link:        &feeds.Link{Href: url},
+				Link:        &feeds.Link{Href: url + "listen/" + strconv.FormatInt(played.Timestamp, 10)},
 				Created:     time.Unix(played.Timestamp, 0),
 			})
 		}

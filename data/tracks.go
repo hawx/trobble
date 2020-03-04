@@ -39,14 +39,15 @@ func (d *Database) TopTracks(limit int) (rankings TrackRankings, err error) {
 }
 
 type Track struct {
-	Artist string
-	Album  string
-	Track  string
-	Count  int
+	Artist      string
+	AlbumArtist string
+	Album       string
+	Track       string
+	Count       int
 }
 
 func (d *Database) topTracksAfter(limit int, after time.Duration) (tracks []Track, err error) {
-	rows, err := d.db.Query("SELECT Artist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Timestamp > ? GROUP BY Artist, Track ORDER BY C DESC LIMIT ?",
+	rows, err := d.db.Query("SELECT Artist, AlbumArtist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Timestamp > ? GROUP BY Artist, Track ORDER BY C DESC LIMIT ?",
 		time.Now().Add(after).Unix(),
 		limit)
 
@@ -57,7 +58,7 @@ func (d *Database) topTracksAfter(limit int, after time.Duration) (tracks []Trac
 
 	for rows.Next() {
 		var track Track
-		if err = rows.Scan(&track.Artist, &track.Album, &track.Track, &track.Count); err != nil {
+		if err = rows.Scan(&track.Artist, &track.AlbumArtist, &track.Album, &track.Track, &track.Count); err != nil {
 			return
 		}
 		tracks = append(tracks, track)
@@ -68,7 +69,8 @@ func (d *Database) topTracksAfter(limit int, after time.Duration) (tracks []Trac
 }
 
 func (d *Database) ArtistTopTracks(name string, limit int) (tracks []Track, err error) {
-	rows, err := d.db.Query("SELECT Artist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Artist = ? GROUP BY Artist, Track ORDER BY C DESC LIMIT ?",
+	rows, err := d.db.Query("SELECT Artist, AlbumArtist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE (Artist = ? OR AlbumArtist = ?) GROUP BY Artist, Track ORDER BY C DESC LIMIT ?",
+		name,
 		name,
 		limit)
 
@@ -79,7 +81,7 @@ func (d *Database) ArtistTopTracks(name string, limit int) (tracks []Track, err 
 
 	for rows.Next() {
 		var track Track
-		if err = rows.Scan(&track.Artist, &track.Album, &track.Track, &track.Count); err != nil {
+		if err = rows.Scan(&track.Artist, &track.AlbumArtist, &track.Album, &track.Track, &track.Count); err != nil {
 			return
 		}
 		tracks = append(tracks, track)
@@ -89,9 +91,9 @@ func (d *Database) ArtistTopTracks(name string, limit int) (tracks []Track, err 
 	return
 }
 
-func (d *Database) AlbumTracks(artist, album string) (tracks []Track, err error) {
-	rows, err := d.db.Query("SELECT Artist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Artist = ? AND Album = ? GROUP BY Artist, Track ORDER BY C DESC",
-		artist,
+func (d *Database) AlbumTracks(albumArtist, album string) (tracks []Track, err error) {
+	rows, err := d.db.Query("SELECT Artist, AlbumArtist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE AlbumArtist = ? AND Album = ? GROUP BY Artist, Track ORDER BY C DESC",
+		albumArtist,
 		album)
 
 	if err != nil {
@@ -101,7 +103,7 @@ func (d *Database) AlbumTracks(artist, album string) (tracks []Track, err error)
 
 	for rows.Next() {
 		var track Track
-		if err = rows.Scan(&track.Artist, &track.Album, &track.Track, &track.Count); err != nil {
+		if err = rows.Scan(&track.Artist, &track.AlbumArtist, &track.Album, &track.Track, &track.Count); err != nil {
 			return
 		}
 		tracks = append(tracks, track)
@@ -111,13 +113,18 @@ func (d *Database) AlbumTracks(artist, album string) (tracks []Track, err error)
 	return
 }
 
-func (d *Database) GetTrack(artist, album, track string) (*Track, error) {
+func (d *Database) GetTrack(albumArtist, album, track string) (*Track, error) {
 	var result Track
 
-	err := d.db.QueryRow("SELECT Artist, Album, Track, COUNT(*) AS C FROM scrobbles WHERE Artist = ? AND Album = ? AND Track = ? GROUP BY Artist, Track ORDER BY C DESC",
-		artist,
+	err := d.db.QueryRow(`
+    SELECT Artist, Album, AlbumArtist, Track, COUNT(*) AS C
+    FROM scrobbles
+    WHERE AlbumArtist = ? AND Album = ? AND Track = ?
+    GROUP BY AlbumArtist, Track
+    ORDER BY C DESC`,
+		albumArtist,
 		album,
-		track).Scan(&result.Artist, &result.Album, &result.Track, &result.Count)
+		track).Scan(&result.Artist, &result.Album, &result.AlbumArtist, &result.Track, &result.Count)
 
 	switch {
 	case err == sql.ErrNoRows:

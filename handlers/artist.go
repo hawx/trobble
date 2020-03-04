@@ -97,5 +97,7 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.templates.ExecuteTemplate(w, "artist.gotmpl", ctx)
+	if err := h.templates.ExecuteTemplate(w, "artist.gotmpl", ctx); err != nil {
+		log.Println(err)
+	}
 }

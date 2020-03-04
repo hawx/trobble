@@ -11,9 +11,10 @@ import (
 )
 
 type albumCtx struct {
-	Title      string
-	TotalPlays int
-	NowPlaying *data.Playing
+	Title       string
+	TotalPlays  int
+	NowPlaying  *data.Playing
+	ShowArtists bool
 
 	Artist   string
 	Album    string
@@ -35,7 +36,7 @@ func Album(db *data.Database, title string, templates *template.Template) http.H
 func (h albumHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
-	artist, err := url.QueryUnescape(route.Vars(r)["artist"])
+	albumArtist, err := url.QueryUnescape(route.Vars(r)["albumArtist"])
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -54,10 +55,10 @@ func (h albumHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx.NowPlaying = nowPlaying
 	}
 
-	ctx.Artist = artist
+	ctx.Artist = albumArtist
 	ctx.Album = album
 
-	tracks, err := h.db.AlbumTracks(artist, album)
+	tracks, err := h.db.AlbumTracks(albumArtist, album)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "", http.StatusInternalServerError)
@@ -70,11 +71,18 @@ func (h albumHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, track := range tracks {
+		if track.Artist != track.AlbumArtist {
+			ctx.ShowArtists = true
+			break
+		}
+	}
+
 	calcSegment := func(play data.PlayCount) int {
 		return play.Year*12 + int(play.Month)
 	}
 
-	plays := h.db.AlbumPlays(artist, album)
+	plays := h.db.AlbumPlays(albumArtist, album)
 	lastPlay := plays[len(plays)-1]
 	lastSegment := calcSegment(lastPlay)
 
@@ -94,5 +102,7 @@ func (h albumHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.templates.ExecuteTemplate(w, "album.gotmpl", ctx)
+	if err := h.templates.ExecuteTemplate(w, "album.gotmpl", ctx); err != nil {
+		log.Println(err)
+	}
 }
