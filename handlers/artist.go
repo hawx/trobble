@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -30,17 +29,16 @@ type artistHandler struct {
 	templates *template.Template
 }
 
-func Artist(db *data.Database, title string, templates *template.Template) http.Handler {
+func Artist(db *data.Database, title string, templates *template.Template) route.Handler {
 	return &artistHandler{db, title, templates}
 }
 
-func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h artistHandler) ServeErrorHTTP(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Add("Content-Type", "text/html")
 
 	name, err := url.QueryUnescape(route.Vars(r)["artist"])
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	ctx := artistCtx{}
@@ -54,23 +52,18 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	topTracks, err := h.db.ArtistTopTracks(name, 50)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return err
 	}
 	ctx.Tracks = topTracks
 
 	albums, err := h.db.ArtistTopAlbums(name, 4)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return err
 	}
 	ctx.Albums = albums
 
 	if len(ctx.Tracks) == 0 {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	calcSegment := func(play data.PlayCount) int {
@@ -97,7 +90,5 @@ func (h artistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "artist.gotmpl", ctx); err != nil {
-		log.Println(err)
-	}
+	return h.templates.ExecuteTemplate(w, "artist.gotmpl", ctx)
 }

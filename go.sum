@@ -20,5 +20,11 @@ hawx.me/code/assert v0.0.0-20150803185601-4570da094475 h1:Bj8b81kYHaxzLu9dRxyRKr
 hawx.me/code/assert v0.0.0-20150803185601-4570da094475/go.mod h1:T9mMMImeViZqsnBMFwbc0TbTlDb+bwAPF0PUJpjam6s=
 hawx.me/code/route v1.0.0 h1:oSH04y0xTXUY5dflvRyUYl+yqs5J/lDvbOwMJc80sYY=
 hawx.me/code/route v1.0.0/go.mod h1:SKWPgx9IKsK2Yy66xj1bSRBOTMwR6kFQcLMjgajaeAc=
+hawx.me/code/route v1.1.0 h1:cr7zUqjps9/vYIsgDpX4f6Wcxzeh3acPIwdUox9WbrY=
+hawx.me/code/route v1.1.0/go.mod h1:SKWPgx9IKsK2Yy66xj1bSRBOTMwR6kFQcLMjgajaeAc=
+hawx.me/code/route v1.1.1 h1:PYWx8S59jk5qVQZSWpwdXR5lSzbvgko8CpiYd2qMSgY=
+hawx.me/code/route v1.1.1/go.mod h1:SKWPgx9IKsK2Yy66xj1bSRBOTMwR6kFQcLMjgajaeAc=
+hawx.me/code/route v1.1.2 h1:qDCYLuCc2J6DmIT7KqNfIkJf+V0rx6bphP/4iwtK5PM=
+hawx.me/code/route v1.1.2/go.mod h1:SKWPgx9IKsK2Yy66xj1bSRBOTMwR6kFQcLMjgajaeAc=
 hawx.me/code/serve v0.0.0-20190207181551-eb94630184cf h1:8rHeLEfK+pyTPkL/kH5THN2HgtfbuMeHnnneMFijo3Y=
 hawx.me/code/serve v0.0.0-20190207181551-eb94630184cf/go.mod h1:3Nhu3uATqipwDDYpeaS/SEIBvC2vbO0hdqYmHffpwRU=

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -30,43 +29,37 @@ type trackHandler struct {
 	templates *template.Template
 }
 
-func Track(db *data.Database, title string, templates *template.Template) http.Handler {
+func Track(db *data.Database, title string, templates *template.Template) route.Handler {
 	return &trackHandler{db, title, templates}
 }
 
-func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h trackHandler) ServeErrorHTTP(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Add("Content-Type", "text/html")
 
 	vars := route.Vars(r)
 
 	albumArtist, err := url.QueryUnescape(vars["albumArtist"])
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	album, err := url.QueryUnescape(vars["album"])
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	track, err := url.QueryUnescape(vars["track"])
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	foundTrack, err := h.db.GetTrack(albumArtist, album, track)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	if foundTrack == nil {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	ctx := trackCtx{}
@@ -106,7 +99,5 @@ func (h trackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "track.gotmpl", ctx); err != nil {
-		log.Println(err)
-	}
+	return h.templates.ExecuteTemplate(w, "track.gotmpl", ctx)
 }

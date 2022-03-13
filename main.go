@@ -15,21 +15,21 @@ import (
 
 const helpMessage = `Usage: trobble [options]
 
-  Catches messages from last.fm scrobblers and stores them in a database
-  instead. It does not forward requests to last.fm.
+	Catches messages from last.fm scrobblers and stores them in a database
+	instead. It does not forward requests to last.fm.
 
-    --username VAL     # Username to use
-    --api-key VAL      # API Key used by connecting clients
-    --secret VAL       # Secret used by connecting clients
+		--username VAL     # Username to use
+		--api-key VAL      # API Key used by connecting clients
+		--secret VAL       # Secret used by connecting clients
 
-    --title TITLE      # Title of page (default: 'trobble')
-    --url URL          # URL running at (default: 'http://localhost:8080/')
-    --web PATH         # Path to 'web' directory (default: 'web')
-    --db PATH          # Path to sqlite3 db (default: 'trobble.db')
+		--title TITLE      # Title of page (default: 'trobble')
+		--url URL          # URL running at (default: 'http://localhost:8080/')
+		--web PATH         # Path to 'web' directory (default: 'web')
+		--db PATH          # Path to sqlite3 db (default: 'trobble.db')
 
-    --port PORT        # Port to serve on (default: '8080')
-    --socket SOCK      # Socket to serve on
-    --help             # Display this message
+		--port PORT        # Port to serve on (default: '8080')
+		--socket SOCK      # Socket to serve on
+		--help             # Display this message
 `
 
 func main() {
@@ -63,18 +63,28 @@ func main() {
 	}
 	defer db.Close()
 
-	route.Handle("/", handlers.Index(db, *title, templates))
-	route.Handle("/feed", handlers.Feed(db, *title, *url))
-	route.Handle("/played", handlers.Played(db, *title, templates))
-	route.Handle("/listen/:timestamp", handlers.Listen(db, *title, templates))
-	route.Handle("/artist/:artist", handlers.Artist(db, *title, templates))
-	route.Handle("/album/:albumArtist/:album", handlers.Album(db, *title, templates))
-	route.Handle("/track/:albumArtist/:album/:track", handlers.Track(db, *title, templates))
+	mux := route.New()
+	mux.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		if err == handlers.ErrNotFound {
+			http.NotFound(w, r)
+		} else {
+			log.Println(err)
+			http.Error(w, "", http.StatusInternalServerError)
+		}
+	}
 
-	route.Handle("/public/*path", http.StripPrefix("/public", http.FileServer(http.Dir(*webPath+"/static"))))
+	mux.Handle("/", handlers.Index(db, *title, templates))
+	mux.Handle("/feed", handlers.Feed(db, *title, *url))
+	mux.Handle("/played", handlers.Played(db, *title, templates))
+	mux.Handle("/listen/:timestamp", handlers.Listen(db, *title, templates))
+	mux.Handle("/artist/:artist", handlers.Artist(db, *title, templates))
+	mux.Handle("/album/:albumArtist/:album", handlers.Album(db, *title, templates))
+	mux.Handle("/track/:albumArtist/:album/:track", handlers.Track(db, *title, templates))
+
+	mux.Handle("/public/*path", http.StripPrefix("/public", http.FileServer(http.Dir(*webPath+"/static"))))
 
 	auth := handlers.NewAuth(*username, *apiKey, *secret)
-	route.Handle("/scrobble/*any", handlers.Scrobble(auth, db))
+	mux.Handle("/scrobble/*any", handlers.Scrobble(auth, db))
 
-	serve.Serve(*port, *socket, serve.Recover(route.Default))
+	serve.Serve(*port, *socket, serve.Recover(mux))
 }

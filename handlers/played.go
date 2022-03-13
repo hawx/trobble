@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 	"time"
 
+	"hawx.me/code/route"
 	"hawx.me/code/trobble/data"
 )
 
@@ -35,11 +35,11 @@ type playedHandler struct {
 	templates *template.Template
 }
 
-func Played(db *data.Database, title string, templates *template.Template) http.Handler {
+func Played(db *data.Database, title string, templates *template.Template) route.Handler {
 	return &playedHandler{db, title, templates}
 }
 
-func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h playedHandler) ServeErrorHTTP(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Add("Content-Type", "text/html")
 
 	fromTime := time.Now()
@@ -61,9 +61,7 @@ func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tracks, err := h.db.Played(fromTime)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return err
 	}
 	var ltracks []data.Scrobble
 
@@ -94,7 +92,5 @@ func (h playedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx.MoreTime = time.Unix(last.Timestamp, 0).Format(time.RFC3339)
 
-	if err := h.templates.ExecuteTemplate(w, "played.gotmpl", ctx); err != nil {
-		log.Println("handlers/played:", err)
-	}
+	return h.templates.ExecuteTemplate(w, "played.gotmpl", ctx)
 }

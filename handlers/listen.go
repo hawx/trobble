@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -28,25 +27,23 @@ type listenHandler struct {
 	templates *template.Template
 }
 
-func Listen(db *data.Database, title string, templates *template.Template) http.Handler {
+func Listen(db *data.Database, title string, templates *template.Template) route.Handler {
 	return &listenHandler{db, title, templates}
 }
 
-func (h listenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h listenHandler) ServeErrorHTTP(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Add("Content-Type", "text/html")
 
 	vars := route.Vars(r)
 
 	timestamp, err := url.QueryUnescape(vars["timestamp"])
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	foundTrack, ok := h.db.Scrobble(timestamp)
 	if !ok {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	ctx := listenCtx{}
@@ -62,7 +59,5 @@ func (h listenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx.Track = foundTrack.Track
 	ctx.Timestamp = foundTrack.Timestamp
 
-	if err := h.templates.ExecuteTemplate(w, "listen.gotmpl", ctx); err != nil {
-		log.Println(err)
-	}
+	return h.templates.ExecuteTemplate(w, "listen.gotmpl", ctx)
 }

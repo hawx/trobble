@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -29,23 +28,21 @@ type albumHandler struct {
 	templates *template.Template
 }
 
-func Album(db *data.Database, title string, templates *template.Template) http.Handler {
+func Album(db *data.Database, title string, templates *template.Template) route.Handler {
 	return &albumHandler{db, title, templates}
 }
 
-func (h albumHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h albumHandler) ServeErrorHTTP(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Add("Content-Type", "text/html")
 
 	albumArtist, err := url.QueryUnescape(route.Vars(r)["albumArtist"])
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	album, err := url.QueryUnescape(route.Vars(r)["album"])
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	ctx := albumCtx{}
@@ -60,15 +57,12 @@ func (h albumHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tracks, err := h.db.AlbumTracks(albumArtist, album)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return err
 	}
 	ctx.Tracks = tracks
 
 	if len(ctx.Tracks) == 0 {
-		http.NotFound(w, r)
-		return
+		return ErrNotFound
 	}
 
 	for _, track := range tracks {
@@ -102,7 +96,5 @@ func (h albumHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "album.gotmpl", ctx); err != nil {
-		log.Println(err)
-	}
+	return h.templates.ExecuteTemplate(w, "album.gotmpl", ctx)
 }

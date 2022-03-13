@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 
+	"hawx.me/code/route"
 	"hawx.me/code/trobble/data"
 )
 
@@ -30,11 +30,11 @@ type indexHandler struct {
 	templates *template.Template
 }
 
-func Index(db *data.Database, title string, templates *template.Template) http.Handler {
+func Index(db *data.Database, title string, templates *template.Template) route.Handler {
 	return &indexHandler{db, title, templates}
 }
 
-func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h indexHandler) ServeErrorHTTP(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Add("Content-Type", "text/html")
 
 	ctx := indexCtx{}
@@ -46,17 +46,13 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	recent, err := h.db.RecentlyPlayed()
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return err
 	}
 	ctx.RecentlyPlayed = recent
 
 	topArtists, err := h.db.TopArtists(10)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	ctx.TopArtists.Overall = topArtists.Overall
@@ -66,9 +62,7 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	topTracks, err := h.db.TopTracks(10)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	ctx.TopTracks.Overall = topTracks.Overall
@@ -76,7 +70,5 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx.TopTracks.Month = topTracks.Month
 	ctx.TopTracks.Week = topTracks.Week
 
-	if err := h.templates.ExecuteTemplate(w, "index.gotmpl", ctx); err != nil {
-		log.Println(err)
-	}
+	return h.templates.ExecuteTemplate(w, "index.gotmpl", ctx)
 }

@@ -1,17 +1,17 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/feeds"
+	"hawx.me/code/route"
 	"hawx.me/code/trobble/data"
 )
 
-func Feed(db *data.Database, title, url string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func Feed(db *data.Database, title, url string) route.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		feed := &feeds.Feed{
 			Title:   title,
 			Link:    &feeds.Link{Href: url},
@@ -20,9 +20,7 @@ func Feed(db *data.Database, title, url string) http.Handler {
 
 		recent, err := db.RecentlyPlayed()
 		if err != nil {
-			log.Println(err)
-			http.Error(w, "", http.StatusInternalServerError)
-			return
+			return err
 		}
 
 		for _, played := range recent {
@@ -36,10 +34,6 @@ func Feed(db *data.Database, title, url string) http.Handler {
 
 		w.Header().Add("Content-Type", "application/rss+xml")
 
-		if err := feed.WriteRss(w); err != nil {
-			log.Println(err)
-			http.Error(w, "", http.StatusInternalServerError)
-			return
-		}
-	})
+		return feed.WriteRss(w)
+	}
 }
